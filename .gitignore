@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+funda.db
+funda_dashboard.html
+logs/
+images/
+public/
+*.log

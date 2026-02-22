@@ -1,0 +1,386 @@
+{
+  "Ambonpleinbuurt": [
+    52.35981312,
+    4.93712441
+  ],
+  "Amstelkwartier-Zuid": [
+    52.33470385,
+    4.92021081
+  ],
+  "Amsterdamse Poort": [
+    52.31437428,
+    4.95181079
+  ],
+  "Arondeusbuurt": [
+    52.38295713,
+    4.82328908
+  ],
+  "Banne-Noordoost": [
+    52.41043239,
+    4.92440538
+  ],
+  "Banne-Noordwest": [
+    52.41154271,
+    4.91846926
+  ],
+  "Banne-Zuidoost": [
+    52.40400009,
+    4.91850704
+  ],
+  "Banne-Zuidwest": [
+    52.40594346,
+    4.91034654
+  ],
+  "Bedrijventerrein Landlust": [
+    52.38307286,
+    4.85953054
+  ],
+  "Bellamybuurt-Zuid": [
+    52.36659934,
+    4.86546203
+  ],
+  "Bijlmermuseum-Noord": [
+    52.32078094,
+    4.97434805
+  ],
+  "Bijlmermuseum-Zuid": [
+    52.31815989,
+    4.97622512
+  ],
+  "Borgerbuurt": [
+    52.3649391,
+    4.86733276
+  ],
+  "Bosleeuw": [
+    52.38119349,
+    4.84822706
+  ],
+  "Buikslotermeer-Noord": [
+    52.40351717,
+    4.94281569
+  ],
+  "Buitenveldert-Oost-Midden": [
+    52.33126082,
+    4.88471676
+  ],
+  "Buyskade e.o.": [
+    52.37910773,
+    4.87088095
+  ],
+  "Centrumeiland": [
+    52.3516003,
+    5.01452712
+  ],
+  "Circus/Kermisbuurt": [
+    52.41811921,
+    4.88425386
+  ],
+  "Cornelis Troostbuurt": [
+    52.35040303,
+    4.88901338
+  ],
+  "Coronelbuurt": [
+    52.38379257,
+    4.83383787
+  ],
+  "D-buurt": [
+    52.32060977,
+    4.95307623
+  ],
+  "Da Costabuurt-Noord": [
+    52.3701291,
+    4.87211873
+  ],
+  "Da Costabuurt-Zuid": [
+    52.36683855,
+    4.8742647
+  ],
+  "De Aker-West": [
+    52.35048023,
+    4.77631355
+  ],
+  "De Kleine Wereld": [
+    52.40131237,
+    4.94147774
+  ],
+  "Dijkgraafpleinbuurt": [
+    52.35636039,
+    4.78516135
+  ],
+  "Dobbebuurt": [
+    52.37886408,
+    4.82936272
+  ],
+  "Driehoekbuurt": [
+    52.38130138,
+    4.88378282
+  ],
+  "Dudokbuurt": [
+    52.37777693,
+    4.79983787
+  ],
+  "Elzenhagen-Zuid": [
+    52.40112313,
+    4.92686313
+  ],
+  "Erasmusparkbuurt-West": [
+    52.37659012,
+    4.85174025
+  ],
+  "Fannius Scholtenbuurt": [
+    52.38360596,
+    4.87390084
+  ],
+  "Frans Halsbuurt": [
+    52.35731974,
+    4.88848574
+  ],
+  "Frederik Hendrikbuurt-Noord": [
+    52.37869215,
+    4.87592312
+  ],
+  "G-buurt-Oost": [
+    52.32647787,
+    4.98118337
+  ],
+  "G-buurt-West": [
+    52.32066157,
+    4.96655735
+  ],
+  "Gein 1": [
+    52.29908078,
+    4.98513476
+  ],
+  "Gein 2": [
+    52.29461046,
+    4.98552243
+  ],
+  "Gerard Doubuurt": [
+    52.35714341,
+    4.89372705
+  ],
+  "Gibraltarbuurt": [
+    52.38364359,
+    4.85295451
+  ],
+  "Haarlemmerbuurt-West": [
+    52.3830235,
+    4.88630487
+  ],
+  "Holendrecht-Zuid": [
+    52.29677621,
+    4.9669002
+  ],
+  "Hoptille": [
+    52.30955208,
+    4.95193566
+  ],
+  "Houthavens-West": [
+    52.39448625,
+    4.88176043
+  ],
+  "IJplein e.o.": [
+    52.38189029,
+    4.91196988
+  ],
+  "Jacob Geelbuurt": [
+    52.36091143,
+    4.83054947
+  ],
+  "Jacques Veltmanbuurt": [
+    52.35485258,
+    4.830753
+  ],
+  "Jan de Louterbuurt": [
+    52.38152396,
+    4.81584298
+  ],
+  "Kadijken": [
+    52.36842572,
+    4.91786118
+  ],
+  "Klaprozenbuurt": [
+    52.40083068,
+    4.90516408
+  ],
+  "Kortvoort": [
+    52.31594483,
+    4.96978051
+  ],
+  "L-buurt": [
+    52.3064845,
+    4.98001441
+  ],
+  "Landlust-Noord": [
+    52.38077983,
+    4.85767555
+  ],
+  "Landlust-Zuid": [
+    52.37740138,
+    4.86071977
+  ],
+  "Loenermark": [
+    52.39927086,
+    4.93121902
+  ],
+  "Lootsbuurt": [
+    52.3632693,
+    4.86079498
+  ],
+  "Louis Crispijnbuurt": [
+    52.354864,
+    4.82315801
+  ],
+  "Makassarpleinbuurt": [
+    52.3644202,
+    4.94331942
+  ],
+  "Markengouw-Noord": [
+    52.40008306,
+    4.95084264
+  ],
+  "Meer en Oever": [
+    52.36392508,
+    4.80667827
+  ],
+  "Molenwijk": [
+    52.41867383,
+    4.8893257
+  ],
+  "Noordoever Sloterplas": [
+    52.37266102,
+    4.82570951
+  ],
+  "Oostenburg": [
+    52.37063979,
+    4.9261872
+  ],
+  "Oosterparkbuurt-Zuidoost": [
+    52.35788271,
+    4.92206255
+  ],
+  "Orteliusbuurt-Zuid": [
+    52.36508762,
+    4.85147571
+  ],
+  "Osdorp-Zuidoost": [
+    52.35351886,
+    4.81225502
+  ],
+  "Osdorpplein e.o.": [
+    52.35847058,
+    4.80567201
+  ],
+  "Overtoomse Veld-Zuid": [
+    52.36170589,
+    4.83815919
+  ],
+  "Rechte H-buurt": [
+    52.3111904,
+    4.95665352
+  ],
+  "Reigersbos 1": [
+    52.29813065,
+    4.97769245
+  ],
+  "Reigersbos 2": [
+    52.29448342,
+    4.97849339
+  ],
+  "Reigersbos 3": [
+    52.29340286,
+    4.96889973
+  ],
+  "Rembrandtplein e.o.": [
+    52.3661592,
+    4.89667678
+  ],
+  "Sarphatiparkbuurt": [
+    52.35507097,
+    4.89567538
+  ],
+  "Schipluidenbuurt": [
+    52.35701192,
+    4.8383506
+  ],
+  "Spaarndammerbuurt-Zuidwest": [
+    52.38894457,
+    4.87815608
+  ],
+  "Sportheldenbuurt": [
+    52.37325397,
+    4.96661603
+  ],
+  "Sumatraplantsoenbuurt": [
+    52.36036968,
+    4.94291412
+  ],
+  "Timorpleinbuurt-Noord": [
+    52.36511002,
+    4.93544602
+  ],
+  "Timorpleinbuurt-Zuid": [
+    52.36249837,
+    4.93559713
+  ],
+  "Transvaalbuurt-West": [
+    52.35279041,
+    4.91769411
+  ],
+  "Van der Helstpleinbuurt": [
+    52.35287571,
+    4.89884094
+  ],
+  "Van der Pekbuurt": [
+    52.38804679,
+    4.90981588
+  ],
+  "Venserpolder-Oost": [
+    52.32433954,
+    4.94739932
+  ],
+  "Venserpolder-West": [
+    52.32026179,
+    4.94376802
+  ],
+  "Vogelbuurt-Zuid": [
+    52.38604107,
+    4.91628128
+  ],
+  "Weespertrekvaart": [
+    52.33793834,
+    4.92919199
+  ],
+  "Werengouw-Midden": [
+    52.39401934,
+    4.95107461
+  ],
+  "Westerstaatsman": [
+    52.38266956,
+    4.8706378
+  ],
+  "Weteringbuurt": [
+    52.3611301,
+    4.89178406
+  ],
+  "Wildeman": [
+    52.36241756,
+    4.8006091
+  ],
+  "Zeeheldenbuurt": [
+    52.38933226,
+    4.88796974
+  ],
+  "Zuidas-Zuid": [
+    52.33657709,
+    4.8731749
+  ],
+  "Zuidwestkwadrant-Noord": [
+    52.3555392,
+    4.79557742
+  ],
+  "Zuidwestkwadrant-Zuid": [
+    52.35124564,
+    4.79764001
+  ]
+}
