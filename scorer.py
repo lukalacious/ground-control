@@ -1,5 +1,5 @@
 """
-Undervalue Scorer for Funda listings.
+Undervalue Scorer for Ground Control listings.
 
 Scoring weights (redistributed from gen1 — WOZ dropped since API doesn't expose it):
   - Price per m2 vs neighbourhood average: 40%
@@ -35,13 +35,14 @@ def score_listings(db_path: str) -> list[dict]:
     for row in conn.execute("SELECT neighbourhood, avg_price_m2 FROM neighbourhood_stats"):
         hood_stats[row["neighbourhood"]] = row["avg_price_m2"]
 
-    # Score each active listing
+    # Score all listings (including sold/inactive for dashboard filtering)
     listings = conn.execute(
         """SELECT global_id, address, city, postcode, neighbourhood, price, price_numeric,
                   listing_url, detail_url, agent_name, image_url,
                   living_area, plot_area, bedrooms, energy_label, object_type,
-                  construction_type, first_seen, last_seen, is_active, previous_price
-           FROM listings WHERE is_active = 1 AND price_numeric > 0"""
+                  construction_type, first_seen, last_seen, is_active, previous_price,
+                  availability_status, predicted_price, residual
+           FROM listings WHERE price_numeric > 0"""
     ).fetchall()
 
     now = datetime.now(timezone.utc)

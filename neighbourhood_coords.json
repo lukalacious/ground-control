@@ -1,386 +1,1760 @@
 {
   "Ambonpleinbuurt": [
     52.35981312,
-    4.93712441
+    4.93712441,
+    "Indische Buurt-West",
+    "Oost"
   ],
   "Amstelkwartier-Zuid": [
     52.33470385,
-    4.92021081
+    4.92021081,
+    "Omval/Overamstel",
+    "Oost"
   ],
   "Amsterdamse Poort": [
     52.31437428,
-    4.95181079
+    4.95181079,
+    "Amsterdamse Poort e.o.",
+    "Zuidoost"
   ],
   "Arondeusbuurt": [
     52.38295713,
-    4.82328908
+    4.82328908,
+    "Slotermeer-Noordoost",
+    "Nieuw-West"
   ],
   "Banne-Noordoost": [
     52.41043239,
-    4.92440538
+    4.92440538,
+    "Banne Buiksloot",
+    "Noord"
   ],
   "Banne-Noordwest": [
     52.41154271,
-    4.91846926
+    4.91846926,
+    "Banne Buiksloot",
+    "Noord"
   ],
   "Banne-Zuidoost": [
     52.40400009,
-    4.91850704
+    4.91850704,
+    "Banne Buiksloot",
+    "Noord"
   ],
   "Banne-Zuidwest": [
     52.40594346,
-    4.91034654
+    4.91034654,
+    "Banne Buiksloot",
+    "Noord"
   ],
   "Bedrijventerrein Landlust": [
     52.38307286,
-    4.85953054
+    4.85953054,
+    "Landlust",
+    "West"
   ],
   "Bellamybuurt-Zuid": [
     52.36659934,
-    4.86546203
+    4.86546203,
+    "Bellamybuurt",
+    "West"
   ],
   "Bijlmermuseum-Noord": [
     52.32078094,
-    4.97434805
+    4.97434805,
+    "Bijlmermuseum",
+    "Zuidoost"
   ],
   "Bijlmermuseum-Zuid": [
     52.31815989,
-    4.97622512
+    4.97622512,
+    "Bijlmermuseum",
+    "Zuidoost"
   ],
   "Borgerbuurt": [
     52.3649391,
-    4.86733276
+    4.86733276,
+    "Van Lennepbuurt",
+    "West"
   ],
   "Bosleeuw": [
     52.38119349,
-    4.84822706
+    4.84822706,
+    "Landlust",
+    "West"
   ],
   "Buikslotermeer-Noord": [
     52.40351717,
-    4.94281569
+    4.94281569,
+    "Buikslotermeer",
+    "Noord"
   ],
   "Buitenveldert-Oost-Midden": [
     52.33126082,
-    4.88471676
+    4.88471676,
+    "Buitenveldert-Oost",
+    "Zuid"
   ],
   "Buyskade e.o.": [
     52.37910773,
-    4.87088095
+    4.87088095,
+    "Staatsliedenbuurt",
+    "West"
   ],
   "Centrumeiland": [
     52.3516003,
-    5.01452712
+    5.01452712,
+    "IJburg-Oost",
+    "Oost"
   ],
   "Circus/Kermisbuurt": [
     52.41811921,
-    4.88425386
+    4.88425386,
+    "Oostzanerwerf",
+    "Noord"
   ],
   "Cornelis Troostbuurt": [
     52.35040303,
-    4.88901338
+    4.88901338,
+    "Nieuwe Pijp",
+    "Zuid"
   ],
   "Coronelbuurt": [
     52.38379257,
-    4.83383787
+    4.83383787,
+    "Slotermeer-Noordoost",
+    "Nieuw-West"
   ],
   "D-buurt": [
     52.32060977,
-    4.95307623
+    4.95307623,
+    "Amsterdamse Poort e.o.",
+    "Zuidoost"
   ],
   "Da Costabuurt-Noord": [
     52.3701291,
-    4.87211873
+    4.87211873,
+    "Da Costabuurt",
+    "West"
   ],
   "Da Costabuurt-Zuid": [
     52.36683855,
-    4.8742647
+    4.8742647,
+    "Van Lennepbuurt",
+    "West"
   ],
   "De Aker-West": [
     52.35048023,
-    4.77631355
+    4.77631355,
+    "De Aker",
+    "Nieuw-West"
   ],
   "De Kleine Wereld": [
     52.40131237,
-    4.94147774
+    4.94147774,
+    "Buikslotermeer",
+    "Noord"
   ],
   "Dijkgraafpleinbuurt": [
     52.35636039,
-    4.78516135
+    4.78516135,
+    "De Punt",
+    "Nieuw-West"
   ],
   "Dobbebuurt": [
     52.37886408,
-    4.82936272
+    4.82936272,
+    "Slotermeer-Noordoost",
+    "Nieuw-West"
   ],
   "Driehoekbuurt": [
     52.38130138,
-    4.88378282
+    4.88378282,
+    "Jordaan",
+    "Centrum"
   ],
   "Dudokbuurt": [
     52.37777693,
-    4.79983787
+    4.79983787,
+    "Geuzenveld",
+    "Nieuw-West"
   ],
   "Elzenhagen-Zuid": [
     52.40112313,
-    4.92686313
+    4.92686313,
+    "Elzenhagen",
+    "Noord"
   ],
   "Erasmusparkbuurt-West": [
     52.37659012,
-    4.85174025
+    4.85174025,
+    "Erasmuspark",
+    "West"
   ],
   "Fannius Scholtenbuurt": [
     52.38360596,
-    4.87390084
+    4.87390084,
+    "Staatsliedenbuurt",
+    "West"
   ],
   "Frans Halsbuurt": [
     52.35731974,
-    4.88848574
+    4.88848574,
+    "Oude Pijp",
+    "Zuid"
   ],
   "Frederik Hendrikbuurt-Noord": [
     52.37869215,
-    4.87592312
+    4.87592312,
+    "Frederik Hendrikbuurt",
+    "West"
   ],
   "G-buurt-Oost": [
     52.32647787,
-    4.98118337
+    4.98118337,
+    "Geerdinkhof/Kantershof",
+    "Zuidoost"
   ],
   "G-buurt-West": [
     52.32066157,
-    4.96655735
+    4.96655735,
+    "Ganzenhoef e.o.",
+    "Zuidoost"
   ],
   "Gein 1": [
     52.29908078,
-    4.98513476
+    4.98513476,
+    "Gein",
+    "Zuidoost"
   ],
   "Gein 2": [
     52.29461046,
-    4.98552243
+    4.98552243,
+    "Gein",
+    "Zuidoost"
   ],
   "Gerard Doubuurt": [
     52.35714341,
-    4.89372705
+    4.89372705,
+    "Oude Pijp",
+    "Zuid"
   ],
   "Gibraltarbuurt": [
     52.38364359,
-    4.85295451
+    4.85295451,
+    "Landlust",
+    "West"
   ],
   "Haarlemmerbuurt-West": [
     52.3830235,
-    4.88630487
+    4.88630487,
+    "Haarlemmerbuurt",
+    "Centrum"
   ],
   "Holendrecht-Zuid": [
     52.29677621,
-    4.9669002
+    4.9669002,
+    "Holendrecht",
+    "Zuidoost"
   ],
   "Hoptille": [
     52.30955208,
-    4.95193566
+    4.95193566,
+    "H-buurt",
+    "Zuidoost"
   ],
   "Houthavens-West": [
     52.39448625,
-    4.88176043
+    4.88176043,
+    "Houthavens",
+    "West"
   ],
   "IJplein e.o.": [
     52.38189029,
-    4.91196988
+    4.91196988,
+    "IJplein/Vogelbuurt",
+    "Noord"
   ],
   "Jacob Geelbuurt": [
     52.36091143,
-    4.83054947
+    4.83054947,
+    "Slotervaart-Noord",
+    "Nieuw-West"
   ],
   "Jacques Veltmanbuurt": [
     52.35485258,
-    4.830753
+    4.830753,
+    "Slotervaart-Zuid",
+    "Nieuw-West"
   ],
   "Jan de Louterbuurt": [
     52.38152396,
-    4.81584298
+    4.81584298,
+    "Slotermeer-West",
+    "Nieuw-West"
   ],
   "Kadijken": [
     52.36842572,
-    4.91786118
+    4.91786118,
+    "Oostelijke Eilanden/Kadijken",
+    "Centrum"
   ],
   "Klaprozenbuurt": [
     52.40083068,
-    4.90516408
+    4.90516408,
+    "Noordelijke IJ-oevers-West",
+    "Noord"
   ],
   "Kortvoort": [
     52.31594483,
-    4.96978051
+    4.96978051,
+    "K-buurt",
+    "Zuidoost"
   ],
   "L-buurt": [
     52.3064845,
-    4.98001441
+    4.98001441,
+    "Nellestein",
+    "Zuidoost"
   ],
   "Landlust-Noord": [
     52.38077983,
-    4.85767555
+    4.85767555,
+    "Landlust",
+    "West"
   ],
   "Landlust-Zuid": [
     52.37740138,
-    4.86071977
+    4.86071977,
+    "Landlust",
+    "West"
   ],
   "Loenermark": [
     52.39927086,
-    4.93121902
+    4.93121902,
+    "Buikslotermeer",
+    "Noord"
   ],
   "Lootsbuurt": [
     52.3632693,
-    4.86079498
+    4.86079498,
+    "Van Lennepbuurt",
+    "West"
   ],
   "Louis Crispijnbuurt": [
     52.354864,
-    4.82315801
+    4.82315801,
+    "Slotervaart-Zuid",
+    "Nieuw-West"
   ],
   "Makassarpleinbuurt": [
     52.3644202,
-    4.94331942
+    4.94331942,
+    "Indische Buurt-Oost",
+    "Oost"
   ],
   "Markengouw-Noord": [
     52.40008306,
-    4.95084264
+    4.95084264,
+    "Waterlandpleinbuurt",
+    "Noord"
   ],
   "Meer en Oever": [
     52.36392508,
-    4.80667827
+    4.80667827,
+    "Osdorp-Oost",
+    "Nieuw-West"
   ],
   "Molenwijk": [
     52.41867383,
-    4.8893257
+    4.8893257,
+    "Oostzanerwerf",
+    "Noord"
   ],
   "Noordoever Sloterplas": [
     52.37266102,
-    4.82570951
+    4.82570951,
+    "Slotermeer-Zuidoost",
+    "Nieuw-West"
   ],
   "Oostenburg": [
     52.37063979,
-    4.9261872
+    4.9261872,
+    "Oostelijke Eilanden/Kadijken",
+    "Centrum"
   ],
   "Oosterparkbuurt-Zuidoost": [
     52.35788271,
-    4.92206255
+    4.92206255,
+    "Oosterparkbuurt",
+    "Oost"
   ],
   "Orteliusbuurt-Zuid": [
     52.36508762,
-    4.85147571
+    4.85147571,
+    "Hoofdweg e.o.",
+    "West"
   ],
   "Osdorp-Zuidoost": [
     52.35351886,
-    4.81225502
+    4.81225502,
+    "Osdorp-Oost",
+    "Nieuw-West"
   ],
   "Osdorpplein e.o.": [
     52.35847058,
-    4.80567201
+    4.80567201,
+    "Osdorp-Oost",
+    "Nieuw-West"
   ],
   "Overtoomse Veld-Zuid": [
     52.36170589,
-    4.83815919
+    4.83815919,
+    "Overtoomse Veld",
+    "Nieuw-West"
   ],
   "Rechte H-buurt": [
     52.3111904,
-    4.95665352
+    4.95665352,
+    "H-buurt",
+    "Zuidoost"
   ],
   "Reigersbos 1": [
     52.29813065,
-    4.97769245
+    4.97769245,
+    "Reigersbos",
+    "Zuidoost"
   ],
   "Reigersbos 2": [
     52.29448342,
-    4.97849339
+    4.97849339,
+    "Reigersbos",
+    "Zuidoost"
   ],
   "Reigersbos 3": [
     52.29340286,
-    4.96889973
+    4.96889973,
+    "Reigersbos",
+    "Zuidoost"
   ],
   "Rembrandtplein e.o.": [
     52.3661592,
-    4.89667678
+    4.89667678,
+    "Grachtengordel-Zuid",
+    "Centrum"
   ],
   "Sarphatiparkbuurt": [
     52.35507097,
-    4.89567538
+    4.89567538,
+    "Oude Pijp",
+    "Zuid"
   ],
   "Schipluidenbuurt": [
     52.35701192,
-    4.8383506
+    4.8383506,
+    "Westlandgracht",
+    "Nieuw-West"
   ],
   "Spaarndammerbuurt-Zuidwest": [
     52.38894457,
-    4.87815608
+    4.87815608,
+    "Spaarndammerbuurt/Zeeheldenbuurt",
+    "West"
   ],
   "Sportheldenbuurt": [
     52.37325397,
-    4.96661603
+    4.96661603,
+    "Zeeburgereiland/Bovendiep",
+    "Oost"
   ],
   "Sumatraplantsoenbuurt": [
     52.36036968,
-    4.94291412
+    4.94291412,
+    "Indische Buurt-Oost",
+    "Oost"
   ],
   "Timorpleinbuurt-Noord": [
     52.36511002,
-    4.93544602
+    4.93544602,
+    "Indische Buurt-West",
+    "Oost"
   ],
   "Timorpleinbuurt-Zuid": [
     52.36249837,
-    4.93559713
+    4.93559713,
+    "Indische Buurt-West",
+    "Oost"
   ],
   "Transvaalbuurt-West": [
     52.35279041,
-    4.91769411
+    4.91769411,
+    "Transvaalbuurt",
+    "Oost"
   ],
   "Van der Helstpleinbuurt": [
     52.35287571,
-    4.89884094
+    4.89884094,
+    "Nieuwe Pijp",
+    "Zuid"
   ],
   "Van der Pekbuurt": [
     52.38804679,
-    4.90981588
+    4.90981588,
+    "Volewijck",
+    "Noord"
   ],
   "Venserpolder-Oost": [
     52.32433954,
-    4.94739932
+    4.94739932,
+    "Venserpolder",
+    "Zuidoost"
   ],
   "Venserpolder-West": [
     52.32026179,
-    4.94376802
+    4.94376802,
+    "Venserpolder",
+    "Zuidoost"
   ],
   "Vogelbuurt-Zuid": [
     52.38604107,
-    4.91628128
+    4.91628128,
+    "IJplein/Vogelbuurt",
+    "Noord"
   ],
   "Weespertrekvaart": [
     52.33793834,
-    4.92919199
+    4.92919199,
+    "Omval/Overamstel",
+    "Oost"
   ],
   "Werengouw-Midden": [
     52.39401934,
-    4.95107461
+    4.95107461,
+    "Waterlandpleinbuurt",
+    "Noord"
   ],
   "Westerstaatsman": [
     52.38266956,
-    4.8706378
+    4.8706378,
+    "Staatsliedenbuurt",
+    "West"
   ],
   "Weteringbuurt": [
     52.3611301,
-    4.89178406
+    4.89178406,
+    "De Weteringschans",
+    "Centrum"
   ],
   "Wildeman": [
     52.36241756,
-    4.8006091
+    4.8006091,
+    "Osdorp-Oost",
+    "Nieuw-West"
   ],
   "Zeeheldenbuurt": [
     52.38933226,
-    4.88796974
+    4.88796974,
+    "Spaarndammerbuurt/Zeeheldenbuurt",
+    "West"
   ],
   "Zuidas-Zuid": [
     52.33657709,
-    4.8731749
+    4.8731749,
+    "Zuidas",
+    "Zuid"
   ],
   "Zuidwestkwadrant-Noord": [
     52.3555392,
-    4.79557742
+    4.79557742,
+    "Osdorp-Midden",
+    "Nieuw-West"
   ],
   "Zuidwestkwadrant-Zuid": [
     52.35124564,
-    4.79764001
+    4.79764001,
+    "Osdorp-Midden",
+    "Nieuw-West"
+  ],
+  "Aalsmeerwegbuurt-Oost": [
+    52.34849655,
+    4.84934209,
+    "Hoofddorppleinbuurt",
+    "Zuid"
+  ],
+  "Aalsmeerwegbuurt-West": [
+    52.34966908,
+    4.84722461,
+    "Hoofddorppleinbuurt",
+    "Zuid"
+  ],
+  "Alexanderplein e.o.": [
+    52.36347332,
+    4.9192942,
+    "Weesperbuurt/Plantage",
+    "Centrum"
+  ],
+  "Amstel III deel A/B-Noord": [
+    52.30602523,
+    4.94670598,
+    "Amstel III/Bullewijk",
+    "Zuidoost"
+  ],
+  "Amstelglorie": [
+    52.33249174,
+    4.90766438,
+    "Omval/Overamstel",
+    "Oost"
+  ],
+  "Amstelkwartier-Noord": [
+    52.33874186,
+    4.91701618,
+    "Omval/Overamstel",
+    "Oost"
+  ],
+  "Amstelveldbuurt": [
+    52.36368079,
+    4.89901017,
+    "Grachtengordel-Zuid",
+    "Centrum"
+  ],
+  "Andreasterrein": [
+    52.35582563,
+    4.84508747,
+    "Westlandgracht",
+    "Nieuw-West"
+  ],
+  "Anjeliersbuurt-Noord": [
+    52.3792642,
+    4.88369283,
+    "Jordaan",
+    "Centrum"
+  ],
+  "Anjeliersbuurt-Zuid": [
+    52.37715912,
+    4.88214335,
+    "Jordaan",
+    "Centrum"
+  ],
+  "Architectenbuurt": [
+    52.36869689,
+    4.94245544,
+    "Oostelijk Havengebied",
+    "Oost"
+  ],
+  "BG-terrein e.o.": [
+    52.36953973,
+    4.89557826,
+    "Burgwallen-Oude Zijde",
+    "Centrum"
+  ],
+  "Balboaplein e.o.": [
+    52.36934196,
+    4.85407046,
+    "Hoofdweg e.o.",
+    "West"
+  ],
+  "Banpleinbuurt": [
+    52.35301574,
+    4.87445923,
+    "Museumkwartier",
+    "Zuid"
+  ],
+  "Belgiëplein e.o.": [
+    52.34560879,
+    4.81186794,
+    "Sloten/Nieuw-Sloten",
+    "Nieuw-West"
+  ],
+  "Bellamybuurt-Noord": [
+    52.36936573,
+    4.86630964,
+    "Bellamybuurt",
+    "West"
+  ],
+  "Bertelmanpleinbuurt": [
+    52.34919272,
+    4.85915516,
+    "Stadionbuurt",
+    "Zuid"
+  ],
+  "Betondorp": [
+    52.34018921,
+    4.94511276,
+    "Betondorp",
+    "Oost"
+  ],
+  "Bloemenbuurt-Noord": [
+    52.3981493,
+    4.91668297,
+    "Volewijck",
+    "Noord"
+  ],
+  "Bloemgrachtbuurt": [
+    52.37452783,
+    4.88025874,
+    "Jordaan",
+    "Centrum"
+  ],
+  "Botteskerkbuurt": [
+    52.35884308,
+    4.7936015,
+    "Osdorp-Midden",
+    "Nieuw-West"
+  ],
+  "Buiksloterham-Noord": [
+    52.39691818,
+    4.90487149,
+    "Noordelijke IJ-oevers-West",
+    "Noord"
+  ],
+  "Buiksloterham-Zuid": [
+    52.39324177,
+    4.89976155,
+    "Noordelijke IJ-oevers-West",
+    "Noord"
+  ],
+  "Buitenveldert-Zuid-Midden": [
+    52.32574807,
+    4.87400074,
+    "Buitenveldert-West",
+    "Zuid"
+  ],
+  "Buitenveldert-Zuidoost": [
+    52.32554325,
+    4.88487175,
+    "Buitenveldert-Oost",
+    "Zuid"
+  ],
+  "Buitenveldert-Zuidwest": [
+    52.3257301,
+    4.86239392,
+    "Buitenveldert-West",
+    "Zuid"
+  ],
+  "Burgemeester Tellegenbuurt-Oost": [
+    52.35038058,
+    4.9010897,
+    "Zuid Pijp",
+    "Zuid"
+  ],
+  "BurgemeesterTellegenbuurt-West": [
+    52.34970276,
+    4.89686347,
+    "Zuid Pijp",
+    "Zuid"
+  ],
+  "Burgwallen-Oost": [
+    52.37281725,
+    4.89873589,
+    "Burgwallen-Oude Zijde",
+    "Centrum"
+  ],
+  "Columbusplein e.o.": [
+    52.36599611,
+    4.85542148,
+    "Hoofdweg e.o.",
+    "West"
+  ],
+  "Concertgebouwbuurt": [
+    52.3573129,
+    4.87689892,
+    "Museumkwartier",
+    "Zuid"
+  ],
+  "Cornelis Schuytbuurt": [
+    52.35561247,
+    4.87180806,
+    "Museumkwartier",
+    "Zuid"
+  ],
+  "Cremerbuurt-Oost": [
+    52.36207374,
+    4.86606456,
+    "Helmersbuurt",
+    "West"
+  ],
+  "Cremerbuurt-West": [
+    52.36049024,
+    4.86038529,
+    "Overtoomse Sluis",
+    "West"
+  ],
+  "Cruquiusbuurt": [
+    52.36956412,
+    4.95187734,
+    "Oostelijk Havengebied",
+    "Oost"
+  ],
+  "Czaar Peterbuurt": [
+    52.36931751,
+    4.92894097,
+    "Oostelijke Eilanden/Kadijken",
+    "Centrum"
+  ],
+  "Dapperbuurt-Noord": [
+    52.36441989,
+    4.92744288,
+    "Dapperbuurt",
+    "Oost"
+  ],
+  "Dapperbuurt-Zuid": [
+    52.36090586,
+    4.92785734,
+    "Dapperbuurt",
+    "Oost"
+  ],
+  "De Aker-Oost": [
+    52.34727476,
+    4.78911162,
+    "De Aker",
+    "Nieuw-West"
+  ],
+  "De Bongerd": [
+    52.40765647,
+    4.90303791,
+    "Tuindorp Oostzaan",
+    "Noord"
+  ],
+  "De Wester Quartier": [
+    52.36718214,
+    4.86067984,
+    "Chassébuurt",
+    "West"
+  ],
+  "De Wetbuurt": [
+    52.34305572,
+    4.92711965,
+    "Frankendael",
+    "Oost"
+  ],
+  "De Wittenbuurt-Noord": [
+    52.3837482,
+    4.87991807,
+    "Staatsliedenbuurt",
+    "West"
+  ],
+  "Delflandpleinbuurt-Oost": [
+    52.34874578,
+    4.84360507,
+    "Westlandgracht",
+    "Nieuw-West"
+  ],
+  "Delflandpleinbuurt-West": [
+    52.34910661,
+    4.83799036,
+    "Westlandgracht",
+    "Nieuw-West"
+  ],
+  "Den Texbuurt": [
+    52.35938354,
+    4.89172157,
+    "De Weteringschans",
+    "Centrum"
+  ],
+  "Diamantbuurt": [
+    52.35111763,
+    4.90684297,
+    "Zuid Pijp",
+    "Zuid"
+  ],
+  "Don Bosco": [
+    52.35274621,
+    4.92616257,
+    "Frankendael",
+    "Oost"
+  ],
+  "Duivelseiland": [
+    52.35337233,
+    4.88470611,
+    "Museumkwartier",
+    "Zuid"
+  ],
+  "Ed Pelsterparkbuurt": [
+    52.35595494,
+    4.99875836,
+    "IJburg-West",
+    "Oost"
+  ],
+  "Elandsgrachtbuurt": [
+    52.37095903,
+    4.88007625,
+    "Jordaan",
+    "Centrum"
+  ],
+  "Erasmusparkbuurt-Oost": [
+    52.37684728,
+    4.85642566,
+    "Landlust",
+    "West"
+  ],
+  "F-buurt": [
+    52.31844277,
+    4.95636891,
+    "Amsterdamse Poort e.o.",
+    "Zuidoost"
+  ],
+  "Felix Meritisbuurt": [
+    52.37132482,
+    4.88548906,
+    "Grachtengordel-West",
+    "Centrum"
+  ],
+  "Filips van Almondekwartier": [
+    52.36999925,
+    4.85800945,
+    "Chassébuurt",
+    "West"
+  ],
+  "Frederik Hendrikbuurt-Zuidoost": [
+    52.37440105,
+    4.87306222,
+    "Frederik Hendrikbuurt",
+    "West"
+  ],
+  "Frederik Hendrikbuurt-Zuidwest": [
+    52.37456161,
+    4.86993378,
+    "Frederik Hendrikbuurt",
+    "West"
+  ],
+  "Frederikspleinbuurt": [
+    52.35965985,
+    4.90020382,
+    "De Weteringschans",
+    "Centrum"
+  ],
+  "GWL-terrein": [
+    52.38388192,
+    4.86871769,
+    "Centrale Markt",
+    "West"
+  ],
+  "Gelderlandpleinbuurt": [
+    52.33208581,
+    4.87408466,
+    "Buitenveldert-West",
+    "Zuid"
+  ],
+  "Geuzenhofbuurt": [
+    52.37273505,
+    4.86477939,
+    "Geuzenbuurt",
+    "West"
+  ],
+  "Haarlemmerbuurt-Oost": [
+    52.38042739,
+    4.89191369,
+    "Haarlemmerbuurt",
+    "Centrum"
+  ],
+  "Havenkwartier IJburg": [
+    52.35272386,
+    5.00505604,
+    "IJburg-Zuid",
+    "Oost"
+  ],
+  "Helmersbuurt-Oost": [
+    52.36481735,
+    4.87651054,
+    "Helmersbuurt",
+    "West"
+  ],
+  "Hemelrijk": [
+    52.37814474,
+    4.89491252,
+    "Burgwallen-Nieuwe Zijde",
+    "Centrum"
+  ],
+  "Hemonybuurt": [
+    52.35709263,
+    4.90263443,
+    "Oude Pijp",
+    "Zuid"
+  ],
+  "Hercules Seghersbuurt": [
+    52.35379075,
+    4.88862663,
+    "Oude Pijp",
+    "Zuid"
+  ],
+  "Hondecoeterbuurt": [
+    52.35362735,
+    4.87928691,
+    "Museumkwartier",
+    "Zuid"
+  ],
+  "Houthavens-Oost": [
+    52.39168268,
+    4.89090631,
+    "Houthavens",
+    "West"
+  ],
+  "IJselbuurt-Oost": [
+    52.34816125,
+    4.90830566,
+    "IJselbuurt",
+    "Zuid"
+  ],
+  "IJselbuurt-West": [
+    52.34755201,
+    4.90081218,
+    "IJselbuurt",
+    "Zuid"
+  ],
+  "Jan Maijenbuurt": [
+    52.37171445,
+    4.85131307,
+    "Van Galenbuurt",
+    "West"
+  ],
+  "Java-eiland": [
+    52.37934124,
+    4.92845132,
+    "Oostelijk Havengebied",
+    "Oost"
+  ],
+  "Johannes Vermeerbuurt": [
+    52.35608078,
+    4.88402986,
+    "Museumkwartier",
+    "Zuid"
+  ],
+  "John Franklinbuurt": [
+    52.37243286,
+    4.85457949,
+    "Van Galenbuurt",
+    "West"
+  ],
+  "Joris Ivenspleinbuurt": [
+    52.35945249,
+    4.99193714,
+    "IJburg-West",
+    "Oost"
+  ],
+  "KNSM-eiland": [
+    52.37900332,
+    4.94528308,
+    "Oostelijk Havengebied",
+    "Oost"
+  ],
+  "Kattenburg": [
+    52.37279535,
+    4.919931,
+    "Oostelijke Eilanden/Kadijken",
+    "Centrum"
+  ],
+  "Kolenkitbuurt-Noord": [
+    52.38152684,
+    4.84177951,
+    "De Kolenkit",
+    "West"
+  ],
+  "Kolenkitbuurt-Zuid": [
+    52.37711194,
+    4.84037996,
+    "De Kolenkit",
+    "West"
+  ],
+  "Koningin Wilhelminaplein": [
+    52.35403783,
+    4.8383496,
+    "Westlandgracht",
+    "Nieuw-West"
+  ],
+  "Kop Zeedijk": [
+    52.37592923,
+    4.90026201,
+    "Burgwallen-Oude Zijde",
+    "Centrum"
+  ],
+  "Kortenaerkwartier": [
+    52.36992502,
+    4.86159671,
+    "Chassébuurt",
+    "West"
+  ],
+  "Kromme Mijdrechtbuurt": [
+    52.34520655,
+    4.9095223,
+    "Rijnbuurt",
+    "Zuid"
+  ],
+  "Laan van Spartaan": [
+    52.37423531,
+    4.83922781,
+    "De Kolenkit",
+    "West"
+  ],
+  "Langestraat e.o.": [
+    52.378367,
+    4.88999014,
+    "Grachtengordel-West",
+    "Centrum"
+  ],
+  "Lastage": [
+    52.37385521,
+    4.90322468,
+    "Nieuwmarkt/Lastage",
+    "Centrum"
+  ],
+  "Legmeerpleinbuurt": [
+    52.353081,
+    4.85168797,
+    "Hoofddorppleinbuurt",
+    "Zuid"
+  ],
+  "Leidsebuurt-Noordoost": [
+    52.36336121,
+    4.88527908,
+    "De Weteringschans",
+    "Centrum"
+  ],
+  "Leidsegracht-Noord": [
+    52.36784173,
+    4.88454297,
+    "Grachtengordel-West",
+    "Centrum"
+  ],
+  "Leidsegracht-Zuid": [
+    52.36674796,
+    4.88628911,
+    "Grachtengordel-Zuid",
+    "Centrum"
+  ],
+  "Leliegracht e.o.": [
+    52.37551927,
+    4.88707681,
+    "Grachtengordel-West",
+    "Centrum"
+  ],
+  "Linnaeusparkbuurt": [
+    52.35435371,
+    4.93300964,
+    "Middenmeer",
+    "Oost"
+  ],
+  "Lizzy Ansinghbuurt": [
+    52.35054392,
+    4.8931559,
+    "Nieuwe Pijp",
+    "Zuid"
+  ],
+  "Lodewijk van Deysselbuurt": [
+    52.37767978,
+    4.81429945,
+    "Slotermeer-West",
+    "Nieuw-West"
+  ],
+  "Marathonbuurt-Oost": [
+    52.34856414,
+    4.86470807,
+    "Stadionbuurt",
+    "Zuid"
+  ],
+  "Marathonbuurt-West": [
+    52.34677433,
+    4.86086616,
+    "Stadionbuurt",
+    "Zuid"
+  ],
+  "Marcanti": [
+    52.37456161,
+    4.8670693,
+    "Centrale Markt",
+    "West"
+  ],
+  "Markengouw-Midden": [
+    52.39663917,
+    4.95703038,
+    "Waterlandpleinbuurt",
+    "Noord"
+  ],
+  "Markengouw-Zuid": [
+    52.39111884,
+    4.9619956,
+    "Waterlandpleinbuurt",
+    "Noord"
+  ],
+  "Marnixbuurt-Midden": [
+    52.37297601,
+    4.87574785,
+    "Jordaan",
+    "Centrum"
+  ],
+  "Marnixbuurt-Noord": [
+    52.38113059,
+    4.88052817,
+    "Jordaan",
+    "Centrum"
+  ],
+  "Marnixbuurt-Zuid": [
+    52.36691857,
+    4.87874596,
+    "Jordaan",
+    "Centrum"
+  ],
+  "Middenmeer-Noord": [
+    52.35505469,
+    4.9372548,
+    "Middenmeer",
+    "Oost"
+  ],
+  "Middenmeer-Zuid": [
+    52.35184287,
+    4.94166441,
+    "Middenmeer",
+    "Oost"
+  ],
+  "Minervabuurt-Midden": [
+    52.34781514,
+    4.87240354,
+    "Apollobuurt",
+    "Zuid"
+  ],
+  "Minervabuurt-Noord": [
+    52.34976251,
+    4.87255399,
+    "Apollobuurt",
+    "Zuid"
+  ],
+  "Minervabuurt-Zuid": [
+    52.34556692,
+    4.87201566,
+    "Apollobuurt",
+    "Zuid"
+  ],
+  "NDSM terrein": [
+    52.40114865,
+    4.89120572,
+    "Noordelijke IJ-oevers-West",
+    "Noord"
+  ],
+  "Nieuw-Sloten-Noordoost": [
+    52.34904751,
+    4.8154383,
+    "Sloten/Nieuw-Sloten",
+    "Nieuw-West"
+  ],
+  "Nieuw-Sloten-Noordwest": [
+    52.34763506,
+    4.80457163,
+    "Sloten/Nieuw-Sloten",
+    "Nieuw-West"
+  ],
+  "Nieuwe Kerk e.o.": [
+    52.37451098,
+    4.89321313,
+    "Burgwallen-Nieuwe Zijde",
+    "Centrum"
+  ],
+  "Nieuwmarkt": [
+    52.3716286,
+    4.90190131,
+    "Nieuwmarkt/Lastage",
+    "Centrum"
+  ],
+  "Olympisch Stadion e.o.": [
+    52.34448975,
+    4.85498077,
+    "Stadionbuurt",
+    "Zuid"
+  ],
+  "Oostelijke Handelskade": [
+    52.37707145,
+    4.9199657,
+    "Oostelijk Havengebied",
+    "Oost"
+  ],
+  "Oosterdokseiland": [
+    52.37722819,
+    4.9079143,
+    "Nieuwmarkt/Lastage",
+    "Centrum"
+  ],
+  "Oosterparkbuurt-Noordwest": [
+    52.35914336,
+    4.9128896,
+    "Oosterparkbuurt",
+    "Oost"
+  ],
+  "Oosterparkbuurt-Zuidwest": [
+    52.35620147,
+    4.91544675,
+    "Oosterparkbuurt",
+    "Oost"
+  ],
+  "Oostpoort": [
+    52.35831989,
+    4.93140068,
+    "Dapperbuurt",
+    "Oost"
+  ],
+  "Oostzanerdijk": [
+    52.4163424,
+    4.88984391,
+    "Oostzanerwerf",
+    "Noord"
+  ],
+  "Orteliusbuurt-Midden": [
+    52.36830579,
+    4.85034494,
+    "Hoofdweg e.o.",
+    "West"
+  ],
+  "Orteliusbuurt-Noord": [
+    52.37123788,
+    4.84861145,
+    "Van Galenbuurt",
+    "West"
+  ],
+  "Oude Kerk e.o.": [
+    52.37379113,
+    4.89614198,
+    "Burgwallen-Oude Zijde",
+    "Centrum"
+  ],
+  "Overhoeks": [
+    52.38676349,
+    4.90075412,
+    "Noordelijke IJ-oevers-West",
+    "Noord"
+  ],
+  "Overtoomse Veld-Noord": [
+    52.36682142,
+    4.83797611,
+    "Overtoomse Veld",
+    "Nieuw-West"
+  ],
+  "P.C. Hooftbuurt": [
+    52.36010264,
+    4.8811233,
+    "Museumkwartier",
+    "Zuid"
+  ],
+  "Paramariboplein e.o.": [
+    52.36156394,
+    4.85553747,
+    "Westindische Buurt",
+    "West"
+  ],
+  "Passeerdersgrachtbuurt": [
+    52.36718946,
+    4.88118897,
+    "Jordaan",
+    "Centrum"
+  ],
+  "Pieter van der Doesbuurt": [
+    52.37292214,
+    4.85754784,
+    "Geuzenbuurt",
+    "West"
+  ],
+  "Plan van Gool": [
+    52.39619764,
+    4.93576162,
+    "Buikslotermeer",
+    "Noord"
+  ],
+  "Plantage": [
+    52.36636009,
+    4.91395568,
+    "Weesperbuurt/Plantage",
+    "Centrum"
+  ],
+  "Postjeskade e.o.": [
+    52.36052435,
+    4.85127198,
+    "Westindische Buurt",
+    "West"
+  ],
+  "Prinses Irenebuurt": [
+    52.34297412,
+    4.87193074,
+    "Prinses Irenebuurt e.o.",
+    "Zuid"
+  ],
+  "Rapenburg": [
+    52.37247193,
+    4.91070897,
+    "Nieuwmarkt/Lastage",
+    "Centrum"
+  ],
+  "Reimerswaal": [
+    52.36209535,
+    4.79178357,
+    "Osdorp-Midden",
+    "Nieuw-West"
+  ],
+  "Rembrandtpark-Zuid": [
+    52.36116321,
+    4.84579164,
+    "Overtoomse Veld",
+    "Nieuw-West"
+  ],
+  "Rieteilanden-West": [
+    52.35454954,
+    4.9932515,
+    "IJburg-West",
+    "Oost"
+  ],
+  "Rietlanden": [
+    52.37390364,
+    4.93387592,
+    "Oostelijk Havengebied",
+    "Oost"
+  ],
+  "Rijnbuurt-Midden": [
+    52.33949027,
+    4.9046673,
+    "Rijnbuurt",
+    "Zuid"
+  ],
+  "Rijnbuurt-Oost": [
+    52.34170279,
+    4.91079568,
+    "Rijnbuurt",
+    "Zuid"
+  ],
+  "Rijnbuurt-West": [
+    52.34169214,
+    4.8997661,
+    "Rijnbuurt",
+    "Zuid"
+  ],
+  "Robert Scottbuurt-Oost": [
+    52.37400135,
+    4.84766557,
+    "Erasmuspark",
+    "West"
+  ],
+  "Robert Scottbuurt-West": [
+    52.3748102,
+    4.84466352,
+    "De Kolenkit",
+    "West"
+  ],
+  "Ruys de Beerenbrouckbuurt": [
+    52.3823356,
+    4.80097948,
+    "Geuzenveld",
+    "Nieuw-West"
+  ],
+  "Sarphatistrook": [
+    52.36177767,
+    4.91003368,
+    "Weesperbuurt/Plantage",
+    "Centrum"
+  ],
+  "Scheepvaarthuisbuurt": [
+    52.37407749,
+    4.905943,
+    "Nieuwmarkt/Lastage",
+    "Centrum"
+  ],
+  "Scheldebuurt-Midden": [
+    52.34474627,
+    4.89807078,
+    "Scheldebuurt",
+    "Zuid"
+  ],
+  "Scheldebuurt-Oost": [
+    52.34470853,
+    4.90322258,
+    "Scheldebuurt",
+    "Zuid"
+  ],
+  "Scheldebuurt-West": [
+    52.34421777,
+    4.89374743,
+    "Scheldebuurt",
+    "Zuid"
+  ],
+  "Schinkelbuurt-Noord": [
+    52.35317832,
+    4.85447463,
+    "Schinkelbuurt",
+    "Zuid"
+  ],
+  "Schinkelbuurt-Zuid": [
+    52.34779108,
+    4.85343725,
+    "Schinkelbuurt",
+    "Zuid"
+  ],
+  "Sloterdijk Stationskwartier": [
+    52.38877288,
+    4.8366411,
+    "Sloterdijk Nieuw-West",
+    "Nieuw-West"
+  ],
+  "Sluisbuurt": [
+    52.37758887,
+    4.95829991,
+    "Zeeburgereiland/Bovendiep",
+    "Oost"
+  ],
+  "Spaarndammerbuurt-Midden": [
+    52.39079537,
+    4.87576765,
+    "Spaarndammerbuurt/Zeeheldenbuurt",
+    "West"
+  ],
+  "Spaarndammerbuurt-Noordoost": [
+    52.39005777,
+    4.88189624,
+    "Spaarndammerbuurt/Zeeheldenbuurt",
+    "West"
+  ],
+  "Spaarndammerbuurt-Noordwest": [
+    52.3921174,
+    4.87222901,
+    "Spaarndammerbuurt/Zeeheldenbuurt",
+    "West"
+  ],
+  "Spaarndammerbuurt-Zuidoost": [
+    52.38784122,
+    4.88221143,
+    "Spaarndammerbuurt/Zeeheldenbuurt",
+    "West"
+  ],
+  "Spiegelbuurt": [
+    52.36489167,
+    4.88769083,
+    "Grachtengordel-Zuid",
+    "Centrum"
+  ],
+  "Spuistraat-Noord": [
+    52.37513982,
+    4.89118743,
+    "Burgwallen-Nieuwe Zijde",
+    "Centrum"
+  ],
+  "Spuistraat-Zuid": [
+    52.37099586,
+    4.88921546,
+    "Burgwallen-Nieuwe Zijde",
+    "Centrum"
+  ],
+  "Staalmanbuurt": [
+    52.34872175,
+    4.83088281,
+    "Slotervaart-Zuid",
+    "Nieuw-West"
+  ],
+  "Staatsliedenbuurt-Noordoost": [
+    52.3847928,
+    4.87747008,
+    "Staatsliedenbuurt",
+    "West"
+  ],
+  "Surinamepleinbuurt": [
+    52.35647377,
+    4.85224155,
+    "Hoofddorppleinbuurt",
+    "Zuid"
+  ],
+  "Terrasdorp": [
+    52.40889255,
+    4.89696004,
+    "Tuindorp Oostzaan",
+    "Noord"
+  ],
+  "Theo van Goghparkbuurt": [
+    52.34906187,
+    5.00750727,
+    "IJburg-Zuid",
+    "Oost"
+  ],
+  "Transvaalbuurt-Oost": [
+    52.35519948,
+    4.92369036,
+    "Transvaalbuurt",
+    "Oost"
+  ],
+  "Trompbuurt": [
+    52.37308383,
+    4.86134508,
+    "Geuzenbuurt",
+    "West"
+  ],
+  "Utrechtsebuurt-Zuid": [
+    52.36155714,
+    4.89955276,
+    "De Weteringschans",
+    "Centrum"
+  ],
+  "VU-kwartier": [
+    52.33487744,
+    4.86345834,
+    "Zuidas",
+    "Zuid"
+  ],
+  "Valeriusbuurt-Oost": [
+    52.3528324,
+    4.86715043,
+    "Willemspark",
+    "Zuid"
+  ],
+  "Valeriusbuurt-West": [
+    52.35136594,
+    4.86137609,
+    "Willemspark",
+    "Zuid"
+  ],
+  "Valkenburg": [
+    52.36896843,
+    4.90767603,
+    "Nieuwmarkt/Lastage",
+    "Centrum"
+  ],
+  "Van Brakelkwartier": [
+    52.36625092,
+    4.85860842,
+    "Chassébuurt",
+    "West"
+  ],
+  "Van Tijenbuurt": [
+    52.37612978,
+    4.79628097,
+    "Geuzenveld",
+    "Nieuw-West"
+  ],
+  "Van Tuyllbuurt": [
+    52.34434843,
+    4.8628093,
+    "Stadionbuurt",
+    "Zuid"
+  ],
+  "Vijzelstraatbuurt": [
+    52.36352641,
+    4.89258532,
+    "Grachtengordel-Zuid",
+    "Centrum"
+  ],
+  "Vliegenbos": [
+    52.38924506,
+    4.9324968,
+    "IJplein/Vogelbuurt",
+    "Noord"
+  ],
+  "Vogelbuurt-Noord": [
+    52.39129184,
+    4.92300347,
+    "IJplein/Vogelbuurt",
+    "Noord"
+  ],
+  "Vondelparkbuurt-Midden": [
+    52.36061162,
+    4.86963134,
+    "Vondelparkbuurt",
+    "West"
+  ],
+  "Vondelparkbuurt-Oost": [
+    52.36225146,
+    4.87786547,
+    "Vondelparkbuurt",
+    "West"
+  ],
+  "Vondelparkbuurt-West": [
+    52.35822096,
+    4.85970936,
+    "Overtoomse Sluis",
+    "West"
+  ],
+  "WG-terrein": [
+    52.36320425,
+    4.87093529,
+    "Helmersbuurt",
+    "West"
+  ],
+  "Walvisbuurt": [
+    52.42258348,
+    4.88751292,
+    "Oostzanerwerf",
+    "Noord"
+  ],
+  "Water": [
+    52.34802913,
+    4.87591937,
+    "Apollobuurt",
+    "Zuid"
+  ],
+  "Waterloopleinbuurt": [
+    52.36757786,
+    4.90237854,
+    "Nieuwmarkt/Lastage",
+    "Centrum"
+  ],
+  "Weesperbuurt": [
+    52.36424957,
+    4.90667093,
+    "Weesperbuurt/Plantage",
+    "Centrum"
+  ],
+  "Weesperzijde-Midden/Zuid": [
+    52.35239399,
+    4.91139075,
+    "Weesperzijde",
+    "Oost"
+  ],
+  "Weesperzijde-Noord": [
+    52.35782026,
+    4.90767203,
+    "Weesperzijde",
+    "Oost"
+  ],
+  "Westelijke eilanden": [
+    52.38583909,
+    4.88819278,
+    "Haarlemmerbuurt",
+    "Centrum"
+  ],
+  "Westerdokseiland": [
+    52.38437181,
+    4.89402523,
+    "Haarlemmerbuurt",
+    "Centrum"
+  ],
+  "Westlandgrachtbuurt": [
+    52.35400053,
+    4.8478768,
+    "Hoofddorppleinbuurt",
+    "Zuid"
+  ],
+  "Wielingenbuurt": [
+    52.3463662,
+    4.88849695,
+    "Scheldebuurt",
+    "Zuid"
+  ],
+  "Willemsparkbuurt-Noord": [
+    52.3539616,
+    4.86119026,
+    "Willemspark",
+    "Zuid"
+  ],
+  "Willibrordusbuurt": [
+    52.35414874,
+    4.90472909,
+    "Nieuwe Pijp",
+    "Zuid"
+  ],
+  "Wittenburg": [
+    52.37177373,
+    4.92237321,
+    "Oostelijke Eilanden/Kadijken",
+    "Centrum"
+  ],
+  "Zaagpoortbuurt": [
+    52.37608557,
+    4.87752285,
+    "Jordaan",
+    "Centrum"
+  ],
+  "Zuiderkerkbuurt": [
+    52.36938763,
+    4.89863162,
+    "Nieuwmarkt/Lastage",
+    "Centrum"
   ]
 }

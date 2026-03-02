@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Funda House Viewer - Interactive terminal UI
+Ground Control — Interactive terminal UI
 """
 
 import sqlite3
@@ -19,7 +19,7 @@ try:
 except ImportError:
     RICH_AVAILABLE = False
 
-DB_PATH = Path.home() / "Documents/openclaw/funda-scraper/files/funda.db"
+DB_PATH = Path(__file__).parent / "ground_control.db"
 
 def get_db():
     """Connect to database"""
@@ -83,7 +83,7 @@ def show_table(listings, page=0, per_page=20):
     if RICH_AVAILABLE:
         console = Console()
         
-        table = Table(title=f"🏠 Funda Listings ({len(listings)} found)", box=box.ROUNDED)
+        table = Table(title=f"🏠 Ground Control Listings ({len(listings)} found)", box=box.ROUNDED)
         table.add_column("#", style="dim", width=4)
         table.add_column("Address", style="cyan", width=25)
         table.add_column("Price", style="green", width=10)

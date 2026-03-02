@@ -1,20 +1,17 @@
 """
-Funda.nl API Scraper
-====================
-Hits Funda's internal Elasticsearch search API directly — no browser automation needed.
-
-Endpoint: POST https://listing-search-wonen.funda.io/_msearch/template
-Discovered via reverse-engineering the Funda mobile app (pyfunda project).
+Ground Control — Property Scraper
+==================================
+Hits the Elasticsearch search API directly — no browser automation needed.
 
 Usage:
     # Initial load — scrape all pages
-    python funda_api_scraper.py --city amsterdam --type buy --min-price 325000 --max-price 400000
+    python scraper.py --city amsterdam --type buy --min-price 325000 --max-price 400000
 
     # Daily delta — only new listings since last run
-    python funda_api_scraper.py --city amsterdam --type buy --min-price 325000 --max-price 400000 --delta
+    python scraper.py --city amsterdam --type buy --min-price 325000 --max-price 400000 --delta
 
     # Export database to CSV
-    python funda_api_scraper.py --export
+    python scraper.py --export
 
 Setup:
     pip install curl_cffi     # recommended — handles TLS fingerprinting
@@ -56,7 +53,7 @@ PHOTO_WIDTH = 464
 
 
 def _generate_trace_headers() -> dict:
-    """Generate Datadog tracing headers mimicking the Funda mobile app."""
+    """Generate Datadog tracing headers mimicking the mobile app."""
     trace_id = str(random.randint(10**18, 10**19))
     parent_id = hex(random.randint(10**15, 10**16))[2:]
     tid = hex(int(time.time()))[2:] + "00000000"
@@ -94,7 +91,7 @@ class ScraperConfig:
     max_delay: float = 3.0
 
     # Database
-    db_path: str = "funda.db"
+    db_path: str = "ground_control.db"
 
     # Mode
     delta_mode: bool = False            # Only fetch new listings
@@ -109,7 +106,7 @@ logging.basicConfig(
     format="%(asctime)s │ %(levelname)-7s │ %(message)s",
     datefmt="%H:%M:%S",
 )
-log = logging.getLogger("funda-api")
+log = logging.getLogger("ground-control")
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -141,7 +138,8 @@ CREATE TABLE IF NOT EXISTS listings (
     listing_type    TEXT,
     first_seen      DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_seen       DATETIME DEFAULT CURRENT_TIMESTAMP,
-    is_active       BOOLEAN DEFAULT 1
+    is_active       BOOLEAN DEFAULT 1,
+    availability_status TEXT DEFAULT 'available'
 );
 
 CREATE TABLE IF NOT EXISTS scrape_runs (
@@ -212,6 +210,7 @@ def init_db(db_path: str) -> sqlite3.Connection:
         "object_type": "TEXT",
         "construction_type": "TEXT",
         "previous_price": "INTEGER",
+        "availability_status": "TEXT DEFAULT 'available'",
     }
     for col, col_type in new_cols.items():
         if col not in existing_cols:
@@ -246,8 +245,8 @@ def upsert_listing(conn: sqlite3.Connection, listing: dict, search_type: str) ->
                 listing_url, detail_url, agent_name, agent_url, image_url,
                 living_area, plot_area, bedrooms, energy_label, object_type,
                 construction_type, is_project, labels, listing_type,
-                first_seen, last_seen, is_active)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)""",
+                first_seen, last_seen, is_active, availability_status)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)""",
             (
                 global_id,
                 address,
@@ -272,6 +271,7 @@ def upsert_listing(conn: sqlite3.Connection, listing: dict, search_type: str) ->
                 search_type,
                 now,
                 now,
+                listing.get("availability", "available"),
             ),
         )
         return "new"
@@ -293,7 +293,7 @@ def upsert_listing(conn: sqlite3.Connection, listing: dict, search_type: str) ->
         conn.execute(
             """UPDATE listings
                SET price = ?, price_numeric = ?, previous_price = ?,
-                   last_seen = ?, is_active = 1,
+                   last_seen = ?, is_active = 1, availability_status = ?,
                    image_url = ?, living_area = ?, bedrooms = ?, energy_label = ?
                WHERE global_id = ?""",
             (
@@ -301,6 +301,7 @@ def upsert_listing(conn: sqlite3.Connection, listing: dict, search_type: str) ->
                 price_numeric,
                 prev_price,
                 now,
+                listing.get("availability", "available"),
                 listing.get("imageUrl", ""),
                 listing.get("livingArea"),
                 listing.get("bedrooms"),
@@ -312,15 +313,21 @@ def upsert_listing(conn: sqlite3.Connection, listing: dict, search_type: str) ->
 
 
 def mark_inactive(conn: sqlite3.Connection, active_ids: set[int], city: str, search_type: str) -> int:
-    """Mark listings not seen in this run as inactive."""
+    """Mark listings not seen in this run as inactive.
+
+    Uses case-insensitive city comparison because cfg.city is lowercase
+    (e.g. 'amsterdam') while the API returns proper case ('Amsterdam').
+    """
     if not active_ids:
         return 0
     placeholders = ",".join("?" * len(active_ids))
+    now = datetime.now(timezone.utc).isoformat()
     cursor = conn.execute(
-        f"""UPDATE listings SET is_active = 0
-            WHERE city = ? AND listing_type = ? AND is_active = 1
+        f"""UPDATE listings SET is_active = 0, availability_status = 'sold',
+                last_seen = ?
+            WHERE city COLLATE NOCASE = ? AND listing_type = ? AND is_active = 1
             AND global_id NOT IN ({placeholders})""",
-        (city, search_type, *active_ids),
+        (now, city, search_type, *active_ids),
     )
     return cursor.rowcount
 
@@ -406,8 +413,8 @@ def calculate_city_stats(conn: sqlite3.Connection) -> dict:
 # API client
 # ──────────────────────────────────────────────────────────────────────
 
-class FundaAPIClient:
-    """Client for Funda's Elasticsearch search API."""
+class PropertyAPIClient:
+    """Client for the Elasticsearch search API."""
 
     def __init__(self, cfg: ScraperConfig):
         self.cfg = cfg
@@ -482,7 +489,7 @@ class FundaAPIClient:
         else:
             price_str = ""
 
-        # Photo — Funda CDN uses chunked ID format: 224821207 → 224/821/207.jpg
+        # Photo — CDN uses chunked ID format: 224821207 → 224/821/207.jpg
         thumbnails = source.get("thumbnail_id", [])
         if thumbnails:
             tid = str(thumbnails[0])
@@ -499,7 +506,7 @@ class FundaAPIClient:
 
         global_id = hit.get("_id", "")
 
-        # Use the real Funda URL from the response
+        # Use the real listing URL from the response
         relative_url = source.get("object_detail_page_relative_url", "")
         listing_url = relative_url
         detail_url = f"{DETAIL_BASE}{relative_url}" if relative_url else ""
@@ -531,6 +538,7 @@ class FundaAPIClient:
             "agentUrl": agent_url,
             "isProject": source.get("type") == "project",
             "labels": [],
+            "availability": source.get("availability", "available"),
         }
 
     def search(self, offset: int = 0, retries: int = 3) -> list[dict]:
@@ -640,10 +648,10 @@ class FundaAPIClient:
 def run_scrape(cfg: ScraperConfig) -> dict:
     """Run a full scrape and store results in SQLite."""
     conn = init_db(cfg.db_path)
-    client = FundaAPIClient(cfg)
+    client = PropertyAPIClient(cfg)
 
     log.info("=" * 60)
-    log.info("Funda API Scraper")
+    log.info("Ground Control Scraper")
     log.info("  City: %s | Type: %s", cfg.city, cfg.search_type)
     if cfg.min_price or cfg.max_price:
         log.info("  Price: %s - %s", cfg.min_price or "any", cfg.max_price or "any")
@@ -671,9 +679,14 @@ def run_scrape(cfg: ScraperConfig) -> dict:
     # Mark listings no longer appearing as inactive (full mode only)
     inactive_count = 0
     if not cfg.delta_mode:
+        prev_active = conn.execute(
+            "SELECT COUNT(*) FROM listings WHERE city COLLATE NOCASE = ? AND listing_type = ? AND is_active = 1",
+            (cfg.city, cfg.search_type),
+        ).fetchone()[0]
+        log.info("Status check: %d active in DB, %d returned by API", prev_active, len(active_ids))
         inactive_count = mark_inactive(conn, active_ids, cfg.city, cfg.search_type)
         if inactive_count:
-            log.info("Marked %d listings as inactive", inactive_count)
+            log.info("Marked %d listings as sold/inactive (no longer in API results)", inactive_count)
 
     # Calculate pages scraped
     pages_scraped = (len(listings) + RESULTS_PER_PAGE - 1) // RESULTS_PER_PAGE
@@ -706,7 +719,7 @@ def run_scrape(cfg: ScraperConfig) -> dict:
     }
 
 
-def export_csv(db_path: str, output_path: str = "funda_export.csv") -> None:
+def export_csv(db_path: str, output_path: str = "ground_control_export.csv") -> None:
     """Export active listings from SQLite to CSV."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -745,7 +758,7 @@ def show_stats(db_path: str) -> None:
     conn.close()
 
     print(f"\n{'='*50}")
-    print(f"  Funda Database Stats: {db_path}")
+    print(f"  Ground Control Database Stats: {db_path}")
     print(f"{'='*50}")
     print(f"  Total listings:    {total}")
     print(f"  Active:            {active}")
@@ -764,25 +777,25 @@ def show_stats(db_path: str) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Funda.nl API Scraper — Elasticsearch search endpoint",
+        description="Ground Control — Property Scraper",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Initial full load
-  python funda_api_scraper.py --city amsterdam --type buy --min-price 325000 --max-price 400000
+  python scraper.py --city amsterdam --type buy --min-price 325000 --max-price 400000
 
   # Daily delta (nightly cron)
-  python funda_api_scraper.py --city amsterdam --type buy --min-price 325000 --max-price 400000 --delta
+  python scraper.py --city amsterdam --type buy --min-price 325000 --max-price 400000 --delta
 
   # Multiple cities
-  python funda_api_scraper.py --city amsterdam --type buy
-  python funda_api_scraper.py --city rotterdam --type buy
+  python scraper.py --city amsterdam --type buy
+  python scraper.py --city rotterdam --type buy
 
   # Export to CSV
-  python funda_api_scraper.py --export
+  python scraper.py --export
 
   # Show database stats
-  python funda_api_scraper.py --stats
+  python scraper.py --stats
         """,
     )
 
@@ -802,13 +815,13 @@ Examples:
     parser.add_argument("--max-delay", type=float, default=3.0, help="Max seconds between requests")
 
     # Database
-    parser.add_argument("--db", default="funda.db", help="SQLite database path")
+    parser.add_argument("--db", default="ground_control.db", help="SQLite database path")
 
     # Modes
     parser.add_argument("--delta", action="store_true", help="Only fetch new listings (skip deactivation)")
     parser.add_argument("--export", action="store_true", help="Export active listings to CSV")
     parser.add_argument("--stats", action="store_true", help="Show database statistics")
-    parser.add_argument("--export-path", default="funda_export.csv")
+    parser.add_argument("--export-path", default="ground_control_export.csv")
 
     args = parser.parse_args()
 

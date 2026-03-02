@@ -1,12 +1,12 @@
 # Ground Control
 
-Amsterdam apartment hunting dashboard powered by Funda's Elasticsearch API.
+Amsterdam apartment hunting dashboard powered by an Elasticsearch property API.
 
 Scrapes listings nightly, scores them by value (price/m² vs neighbourhood and city averages), and serves an interactive dashboard with map view, neighbourhood filtering, and price drop tracking.
 
 ## Stack
 
-- **Scraper**: Python + curl_cffi (TLS fingerprinting) hitting Funda's `listing-search-wonen.funda.io` API
+- **Scraper**: Python + curl_cffi (TLS fingerprinting) hitting the property search API
 - **Database**: SQLite — listings, price history, neighbourhood stats
 - **Dashboard**: Self-contained HTML with Leaflet map, filters, and scoring
 - **Serving**: Python HTTP server + Tailscale Serve
@@ -23,21 +23,21 @@ pip install -r requirements.txt
 
 ```bash
 # Full scrape
-python3 funda_api_scraper.py --city amsterdam --type buy --property-type apartment --db funda.db
+python3 scraper.py --city amsterdam --type buy --property-type apartment --db ground_control.db
 
 # Delta scrape (only new/changed)
-python3 funda_api_scraper.py --city amsterdam --type buy --property-type apartment --delta --db funda.db
+python3 scraper.py --city amsterdam --type buy --property-type apartment --delta --db ground_control.db
 
 # Generate dashboard
-python3 generate_dashboard.py --db funda.db --output funda_dashboard.html
+python3 generate_dashboard.py --db ground_control.db --output ground_control_dashboard.html
 
 # Open in browser
-python3 generate_dashboard.py --db funda.db --output funda_dashboard.html --open
+python3 generate_dashboard.py --db ground_control.db --output ground_control_dashboard.html --open
 ```
 
 ## Nightly automation
 
-`run_nightly.sh` runs the delta scrape, geocodes new neighbourhoods, and regenerates the dashboard. Scheduled via `com.funda.scraper.plist` (macOS LaunchAgent, 6AM daily).
+`run_nightly.sh` runs the full scrape, geocodes new neighbourhoods, and regenerates the dashboard. Scheduled via `com.groundcontrol.scraper.plist` (macOS LaunchAgent, 6AM daily).
 
 ## Scoring
 

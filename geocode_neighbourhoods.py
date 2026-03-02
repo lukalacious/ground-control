@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """Geocode Amsterdam neighbourhood names using the PDOK Locatieserver API.
 
-Resolves neighbourhood names from funda.db to lat/lng coordinates and caches
+Resolves neighbourhood names from the database to lat/lng coordinates and caches
 results in neighbourhood_coords.json. Only geocodes new/missing names on
 subsequent runs.
+
+Cache format: {"name": [lat, lng, "wijknaam"]}
 
 PDOK Locatieserver is the Dutch government's free geocoding service — no API
 key required.
 """
 
+import argparse
 import json
 import re
 import sqlite3
@@ -17,7 +20,7 @@ import urllib.request
 import urllib.parse
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "funda.db"
+DB_PATH = Path(__file__).parent / "ground_control.db"
 CACHE_PATH = Path(__file__).parent / "neighbourhood_coords.json"
 
 PDOK_BASE = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free"
@@ -65,8 +68,8 @@ def parse_centroid(wkt: str) -> tuple[float, float] | None:
     return None
 
 
-def query_pdok(query: str, fq_type: str = "buurt") -> tuple[float, float] | None:
-    """Query PDOK Locatieserver and return (lat, lng) or None."""
+def query_pdok(query: str, fq_type: str = "buurt") -> tuple[float, float, str] | None:
+    """Query PDOK Locatieserver and return (lat, lng, wijknaam) or None."""
     params = urllib.parse.urlencode({
         "q": query,
         "rows": "1",
@@ -76,20 +79,24 @@ def query_pdok(query: str, fq_type: str = "buurt") -> tuple[float, float] | None
     url = f"{PDOK_BASE}?{params}&fq=gemeentenaam:Amsterdam"
 
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "FundaScraper/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "GroundControl/1.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
 
         docs = data.get("response", {}).get("docs", [])
         if docs and "centroide_ll" in docs[0]:
-            return parse_centroid(docs[0]["centroide_ll"])
+            coords = parse_centroid(docs[0]["centroide_ll"])
+            if coords:
+                wijknaam = docs[0].get("wijknaam", "") or ""
+                return (coords[0], coords[1], wijknaam)
     except Exception as e:
         print(f"  API error for '{query}': {e}")
     return None
 
 
-def geocode_name(name: str) -> tuple[float, float] | None:
-    """Try multiple strategies to geocode a neighbourhood name."""
+def geocode_name(name: str) -> tuple[float, float, str] | None:
+    """Try multiple strategies to geocode a neighbourhood name.
+    Returns (lat, lng, wijknaam) or None."""
     # Strategy 1: direct search as buurt
     result = query_pdok(f"{name} Amsterdam")
     if result:
@@ -118,18 +125,34 @@ def geocode_name(name: str) -> tuple[float, float] | None:
     return None
 
 
+def needs_wijk(entry: list) -> bool:
+    """Check if a cache entry is missing wijknaam (old 2-element format)."""
+    return len(entry) < 3 or not entry[2]
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Geocode neighbourhood names via PDOK")
+    parser.add_argument("--force", action="store_true",
+                        help="Re-geocode all entries (useful to backfill wijknaam)")
+    args = parser.parse_args()
+
     neighbourhoods = get_neighbourhoods(DB_PATH)
     cache = load_cache(CACHE_PATH)
 
-    # Find names that need geocoding
-    missing = [n for n in neighbourhoods if n not in cache]
+    if args.force:
+        # Re-geocode everything to backfill wijknaam
+        missing = neighbourhoods
+        print(f"Force mode: re-geocoding all {len(missing)} neighbourhoods...")
+    else:
+        # Geocode new names + entries missing wijknaam
+        missing = [n for n in neighbourhoods
+                   if n not in cache or needs_wijk(cache.get(n, []))]
 
     if not missing:
-        print(f"All {len(cache)} neighbourhoods already geocoded.")
+        print(f"All {len(cache)} neighbourhoods already geocoded with wijk data.")
         return
 
-    print(f"Geocoding {len(missing)} new neighbourhoods ({len(cache)} cached)...")
+    print(f"Geocoding {len(missing)} neighbourhoods ({len(cache)} in cache)...")
 
     found = 0
     skipped = []
@@ -137,10 +160,12 @@ def main() -> None:
     for i, name in enumerate(missing, 1):
         print(f"  [{i}/{len(missing)}] {name}...", end=" ", flush=True)
 
-        coords = geocode_name(name)
-        if coords:
-            cache[name] = list(coords)
-            print(f"→ ({coords[0]:.4f}, {coords[1]:.4f})")
+        result = geocode_name(name)
+        if result:
+            lat, lng, wijk = result
+            cache[name] = [lat, lng, wijk]
+            wijk_str = f" [{wijk}]" if wijk else ""
+            print(f"→ ({lat:.4f}, {lng:.4f}){wijk_str}")
             found += 1
         else:
             print("→ SKIPPED (not found)")
@@ -150,7 +175,9 @@ def main() -> None:
 
     save_cache(CACHE_PATH, cache)
 
-    print(f"\nDone: {found} geocoded, {len(skipped)} skipped, {len(cache)} total cached")
+    # Summary
+    wijk_count = len(set(e[2] for e in cache.values() if len(e) >= 3 and e[2]))
+    print(f"\nDone: {found} geocoded, {len(skipped)} skipped, {len(cache)} total cached, {wijk_count} distinct wijken")
     if skipped:
         print(f"Skipped: {', '.join(skipped)}")
 

@@ -3,16 +3,16 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.funda.scraper</string>
+    <string>com.groundcontrol.scraper</string>
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/lukeroberts/Documents/openclaw/funda-scraper/run_nightly.sh</string>
+        <string>/Users/lukeroberts/Documents/openclaw/ground-control/run_nightly.sh</string>
     </array>
     <key>StandardOutPath</key>
-    <string>/Users/lukeroberts/Documents/openclaw/funda-scraper/logs/nightly.log</string>
+    <string>/Users/lukeroberts/Documents/openclaw/ground-control/logs/nightly.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/lukeroberts/Documents/openclaw/funda-scraper/logs/nightly_error.log</string>
+    <string>/Users/lukeroberts/Documents/openclaw/ground-control/logs/nightly_error.log</string>
     <key>StartCalendarInterval</key>
     <array>
         <dict>
@@ -25,6 +25,6 @@
     <key>RunAtLoad</key>
     <false/>
     <key>WorkingDirectory</key>
-    <string>/Users/lukeroberts/Documents/openclaw/funda-scraper</string>
+    <string>/Users/lukeroberts/Documents/openclaw/ground-control</string>
 </dict>
 </plist>

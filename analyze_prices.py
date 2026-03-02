@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Analyze housing price data from funda.db."""
+"""Analyze housing price data from Ground Control database."""
 
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "funda.db"
+DB_PATH = Path(__file__).parent / "ground_control.db"
 
 
 def connect():
