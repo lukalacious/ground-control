@@ -1,2 +1,4 @@
 curl_cffi>=0.14.0
 rich>=14.0.0
+scrapling[fetchers]>=0.4.1
+lxml>=6.0.0
