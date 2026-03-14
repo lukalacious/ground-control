@@ -10,3 +10,8 @@ public/
 *.log
 *.pkl
 .vercel
+*.png
+*.svg
+*.html
+!public/
+neighbourhood_coords.json

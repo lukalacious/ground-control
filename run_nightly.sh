@@ -15,7 +15,6 @@ echo "--- [1/4] Scraping listings..."
 python3 "$DIR/scraper.py" \
     --city amsterdam \
     --type buy \
-    --property-type apartment \
     --db "$DIR/ground_control.db"
 
 # Step 2: Geocode any new neighbourhoods

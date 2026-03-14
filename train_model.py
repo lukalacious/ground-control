@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
 import joblib
 import warnings
@@ -47,8 +47,24 @@ numeric_features = ['living_area', 'bedrooms', 'days_on_market', 'energy_score',
 categorical_features = ['construction_type', 'postcode_prefix', 'is_project']
 X = df[numeric_features + categorical_features].copy()
 y = df['price_numeric']
-X[numeric_features] = X[numeric_features].fillna(X[numeric_features].median())
-X[categorical_features] = X[categorical_features].fillna('unknown')
+
+# FIRST drop rows where target is NaN
+mask = y.notna()
+X = X[mask]
+y = y[mask]
+print(f"After dropping no-target rows: {len(X)} rows")
+
+# Calculate medians from FULL dataset (before split!)
+medians = {}
+for col in numeric_features:
+    medians[col] = X[col].median()
+    X[col] = X[col].fillna(medians[col])
+
+# Fill categorical with 'unknown'
+for col in categorical_features:
+    X[col] = X[col].fillna('unknown')
+
+print(f"Final: {len(X)} rows, {len(y)} labels")
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 print(f'Train: {len(X_train)}, Test: {len(X_test)}')
@@ -62,25 +78,41 @@ X_train_t = preprocessor.fit_transform(X_train)
 X_test_t = preprocessor.transform(X_test)
 print(f'Transformed shape: {X_train_t.shape}')
 
-print('Training Gradient Boosting...')
-gb = GradientBoostingRegressor(n_estimators=200, max_depth=5, learning_rate=0.1, random_state=42)
-gb.fit(X_train_t, y_train)
-gb_pred = gb.predict(X_test_t)
+# Convert sparse to dense for HistGradientBoosting
+X_train_dense = X_train_t.toarray()
+X_test_dense = X_test_t.toarray()
+
+print('Training tuned HistGradient Boosting...')
+# Less regularization - balance between underfitting and overfitting
+gb = HistGradientBoostingRegressor(
+    max_iter=200,
+    max_depth=5,           # deeper to capture patterns
+    learning_rate=0.1,     # faster learning
+    min_samples_leaf=5,    # less restrictive
+    l2_regularization=0.1, # weaker reg
+    random_state=42
+)
+gb.fit(X_train_dense, y_train)
+gb_pred = gb.predict(X_test_dense)
 mae = mean_absolute_error(y_test, gb_pred)
 r2 = r2_score(y_test, gb_pred)
 print(f'Gradient Boosting - MAE: €{mae:,.0f}, R2: {r2:.3f}')
 
 print('Saving model...')
-full_pipeline = Pipeline([
-    ('preprocessor', preprocessor),
-    ('regressor', GradientBoostingRegressor(n_estimators=200, max_depth=5, learning_rate=0.1, random_state=42))
-])
-full_pipeline.fit(X, y)
-joblib.dump(full_pipeline, 'housing_price_model.pkl')
+# Transform all data and train final model
+X_full_t = preprocessor.transform(X)
+X_full_dense = X_full_t.toarray()
+
+full_model = HistGradientBoostingRegressor(
+    max_iter=200, max_depth=5, learning_rate=0.1,
+    min_samples_leaf=5, l2_regularization=0.1, random_state=42
+)
+full_model.fit(X_full_dense, y)
+joblib.dump({'model': full_model, 'preprocessor': preprocessor}, 'housing_price_model.pkl')
 print('Model saved to housing_price_model.pkl')
 
 # Add predictions to original dataframe (for all listings in our feature df)
-df['predicted_price'] = gb.predict(preprocessor.transform(X))
+df['predicted_price'] = full_model.predict(preprocessor.transform(X))
 df['residual'] = df['price_numeric'] - df['predicted_price']  # positive = underpriced
 
 # Get the global_ids for updating

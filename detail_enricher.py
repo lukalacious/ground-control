@@ -321,6 +321,11 @@ def parse_detail(html_text: str, global_id: int) -> dict:
     if acceptance and "log in" in acceptance.lower():
         acceptance = None  # behind login
 
+    # ── Price from page text ─────────────────────────────────────────
+    page_text = page.text_content() if page is not None else ""
+    price_match = re.search(r'€\s?(\d{1,3}(?:\.\d{3})*)', page_text)
+    price_numeric = int(price_match.group(1).replace('.', '')) if price_match else None
+
     # ── Rich text fields ────────────────────────────────────────────
 
     description = extract_description(page)
@@ -330,6 +335,8 @@ def parse_detail(html_text: str, global_id: int) -> dict:
 
     return {
         "global_id":          global_id,
+        "price_numeric":      price_numeric,
+        "price":              f"€ {price_numeric:,}" if price_numeric else None,
         "description":        description or None,
         "year_built":         year_built,
         "num_rooms":          num_rooms,
