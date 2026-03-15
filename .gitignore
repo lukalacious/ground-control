@@ -17,4 +17,5 @@ neighbourhood_coords.json
 *.html
 !public/
 !public/index.html
+!public/model.html
 !public/listings.json
