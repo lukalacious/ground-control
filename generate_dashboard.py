@@ -1472,7 +1472,7 @@ function openModal(globalId) {{
             ${{featHtml}}
 
             <div class="modal-actions">
-                <a href="${{l.detail_url}}" target="_blank" rel="noopener" class="btn">View on Funda &rarr;</a>
+                <a href="${{l.detail_url}}" target="_blank" rel="noopener" class="btn">View Listing &rarr;</a>
                 <button class="btn btn-ghost" onclick="toggleFav(null,${{l.global_id}}); openModal(${{l.global_id}});">
                     ${{isFaved ? '&#9829; Saved' : '&#9825; Save'}}
                 </button>

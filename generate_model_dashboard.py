@@ -375,7 +375,7 @@ def build_erfpacht_html(erfpacht_parsed, erfpacht_status_counts):
             slug = re.search(r'/([^/]+)/\d+/?$', str(e.get('detail_url', '')))
             addr = slug.group(1).replace('-', ' ').title() if slug else '\u2014'
         url = e.get('detail_url', '')
-        funda_link = f'https://www.funda.nl{url}' if url.startswith('/') else url
+        listing_link = f'https://www.funda.nl{url}' if url.startswith('/') else url
         canon = e.get('canon_yearly')
         canon_str = f'\u20ac{canon:,.0f}/yr' if canon else '\u2014'
         expiry = e.get('expiry_date', '\u2014') or '\u2014'
@@ -385,7 +385,7 @@ def build_erfpacht_html(erfpacht_parsed, erfpacht_status_counts):
         system = e.get('system', '\u2014') or '\u2014'
         rows.append(
             f'<tr>'
-            f'<td><a href="{funda_link}" target="_blank" rel="noopener">{addr[:45]}</a></td>'
+            f'<td><a href="{listing_link}" target="_blank" rel="noopener">{addr[:45]}</a></td>'
             f'<td>{e.get("neighbourhood", "\u2014") or "\u2014"}</td>'
             f'<td class="num">{canon_str}</td>'
             f'<td>{expiry}</td>'

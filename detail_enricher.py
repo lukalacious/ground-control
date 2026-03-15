@@ -1,7 +1,7 @@
 """
 Ground Control — Detail Page Enricher
 ======================================
-Fetches individual Funda listing pages and extracts exhaustive metadata
+Fetches individual listing pages and extracts exhaustive metadata
 not available from the Elasticsearch search API.
 
 New fields extracted:
@@ -334,7 +334,7 @@ def extract_header_data(page) -> dict:
 
 
 def parse_detail(html_text: str, global_id: int) -> dict:
-    """Parse a Funda detail page HTML into enrichment fields."""
+    """Parse a detail page HTML into enrichment fields."""
     page = lhtml.fromstring(html_text)
     dl = build_dl_map(page)
 
@@ -547,7 +547,7 @@ def run_enrichment(
         html_text, status_code = fetch_detail_page(session, detail_url)
         if not html_text:
             if status_code in (404, 410):
-                # Listing removed from Funda — mark as sold
+                # Listing removed — mark as sold
                 now = datetime.now(timezone.utc).isoformat()
                 conn.execute("""UPDATE listings SET is_active = 0, availability_status = 'sold',
                     status_changed_at = ?, detail_enriched = 1, detail_enriched_at = ?

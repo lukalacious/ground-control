@@ -1,7 +1,7 @@
 """
 Ground Control — Property Scraper
 ==================================
-Uses Scrapling to scrape Funda search pages, detail enricher gets full data.
+Uses Scrapling to scrape property search pages, detail enricher gets full data.
 
 Usage:
     python scraper.py --city amsterdam --type buy
@@ -297,7 +297,7 @@ def _extract_bedrooms_from_card(card) -> int | None:
 
 
 def scrape_search_page(url: str) -> list[dict]:
-    """Scrape a Funda search page for listing links and card data."""
+    """Scrape a search page for listing links and card data."""
     fetcher = StealthyFetcher()
     page = fetcher.fetch(url, headless=True, network_idle=True)
 
@@ -430,9 +430,9 @@ def scrape_all_pages(city: str, search_type: str, max_pages: int = None) -> list
         if max_pages and page >= max_pages:
             break
         
-        # Build URL - Funda uses /koop/ not /buy/
-        fundatype = "koop" if search_type == "buy" else "huur"
-        url = f"https://www.funda.nl/zoeken/{fundatype}/?selected_area=%5B%22{city}%22%5D"
+        # Build URL - /koop/ for buy, /huur/ for rent
+        listing_type = "koop" if search_type == "buy" else "huur"
+        url = f"https://www.funda.nl/zoeken/{listing_type}/?selected_area=%5B%22{city}%22%5D"
         if page > 0:
             url += f"&page={page}"
         
