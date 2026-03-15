@@ -216,7 +216,7 @@ def build_html(generated_at: str) -> str:
         /* ── Views ── */
         .view {{ display: none; }}
         .view.active {{ display: block; }}
-        .view-map.active {{ display: flex; flex-direction: column; height: calc(100dvh - var(--nav-h) - var(--safe-b)); }}
+        .view-map.active {{ display: flex; flex-direction: column; height: calc(100dvh - var(--nav-h) - var(--safe-b)); position: relative; z-index: 1; }}
 
         /* ── Header ── */
         .header {{
