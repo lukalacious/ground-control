@@ -9,6 +9,7 @@ Scoring weights (redistributed from gen1 — WOZ dropped since API doesn't expos
 Higher score = more undervalued = better deal.
 """
 
+import json
 import sqlite3
 from datetime import datetime, timezone
 
@@ -41,7 +42,11 @@ def score_listings(db_path: str) -> list[dict]:
                   listing_url, detail_url, agent_name, image_url,
                   living_area, plot_area, bedrooms, energy_label, object_type,
                   construction_type, first_seen, last_seen, is_active, previous_price,
-                  availability_status, predicted_price, residual
+                  availability_status, predicted_price, residual,
+                  description, year_built, num_rooms, num_bathrooms, bathroom_features,
+                  num_floors, floor_level, outdoor_area_m2, volume_m3, amenities,
+                  insulation, heating, location_type, has_balcony, balcony_type,
+                  parking_type, vve_contribution, erfpacht, acceptance, photo_urls
            FROM listings WHERE price_numeric > 0"""
     ).fetchall()
 
@@ -89,6 +94,15 @@ def score_listings(db_path: str) -> list[dict]:
         row["score_details"] = details
         if price_m2 is None:
             row["price_m2"] = None
+
+        # Parse photo_urls from JSON string to list
+        if row.get("photo_urls"):
+            try:
+                row["photo_urls"] = json.loads(row["photo_urls"])
+            except (json.JSONDecodeError, TypeError):
+                row["photo_urls"] = []
+        else:
+            row["photo_urls"] = []
 
         scored.append(row)
 

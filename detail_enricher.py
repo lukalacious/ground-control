@@ -25,6 +25,13 @@ New fields extracted:
   - erfpacht            Leasehold / erfpacht info (free text)
   - acceptance          Delivery date / oplevering (Aanvaarding)
   - photo_urls          JSON array of all photo URLs from the page
+  - energy_label        Energy rating A-G (Energielabel)
+  - construction_type   "Bestaande bouw" or "Nieuwbouw" (Soort bouw)
+  - object_type         Property type (Soort woning / Soort appartement)
+  - address             Street + house number from page header
+  - postcode            Dutch postcode from page header
+  - city                City name from page header
+  - neighbourhood       Neighbourhood name from page header
   - detail_enriched     Boolean flag — enrichment complete
   - detail_enriched_at  Timestamp of last enrichment run
 
@@ -81,6 +88,13 @@ log = logging.getLogger("detail-enricher")
 
 ENRICHMENT_COLUMNS = {
     "description":        "TEXT",
+    "energy_label":       "TEXT",
+    "construction_type":  "TEXT",
+    "object_type":        "TEXT",
+    "address":            "TEXT",
+    "postcode":           "TEXT",
+    "city":               "TEXT",
+    "neighbourhood":      "TEXT",
     "year_built":         "TEXT",
     "num_rooms":          "INTEGER",
     "num_bathrooms":      "INTEGER",
@@ -102,6 +116,7 @@ ENRICHMENT_COLUMNS = {
     "photo_urls":         "TEXT",
     "detail_enriched":    "BOOLEAN DEFAULT 0",
     "detail_enriched_at": "DATETIME",
+    "status_changed_at":  "DATETIME",
 }
 
 
@@ -128,11 +143,12 @@ def make_session() -> http_client.Session:
     return http_client.Session(impersonate="safari15_5")
 
 
-def fetch_detail_page(session: http_client.Session, detail_url: str, retries: int = 3) -> Optional[str]:
-    """Fetch a listing detail page. Returns HTML or None on failure."""
+def fetch_detail_page(session: http_client.Session, detail_url: str, retries: int = 3) -> tuple[Optional[str], int]:
+    """Fetch a listing detail page. Returns (HTML, status_code) or (None, status_code) on failure."""
     # Build full URL if relative
     url = detail_url if detail_url.startswith("http") else f"{DETAIL_BASE}{detail_url}"
 
+    last_status = 0
     for attempt in range(1, retries + 1):
         try:
             resp = session.get(url, headers={
@@ -144,11 +160,12 @@ def fetch_detail_page(session: http_client.Session, detail_url: str, retries: in
                 "Cache-Control": "no-cache",
             }, timeout=20)
 
+            last_status = resp.status_code
             if resp.status_code == 200:
-                return resp.text
+                return resp.text, 200
             elif resp.status_code in (404, 410):
-                log.warning("  %s — listing gone (404/410)", url)
-                return None
+                log.warning("  %s — listing gone (%d)", url, resp.status_code)
+                return None, resp.status_code
             elif resp.status_code == 429:
                 wait = 10 * attempt
                 log.warning("  429 rate limited — waiting %ds (attempt %d/%d)", wait, attempt, retries)
@@ -161,7 +178,7 @@ def fetch_detail_page(session: http_client.Session, detail_url: str, retries: in
             log.warning("  Fetch error attempt %d: %s", attempt, e)
             time.sleep(2 ** attempt)
 
-    return None
+    return None, last_status
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -258,6 +275,64 @@ def extract_erfpacht(html_text: str) -> str:
     return cleaned[:400]
 
 
+def extract_energy_label(dl: dict) -> Optional[str]:
+    """Extract clean energy label (A++++..G) from the Energielabel dd text.
+
+    The dd often includes button text like "B Wat betekent dit?" — regex
+    pulls just the label grade.
+    """
+    raw = dl.get("Energielabel", "")
+    if not raw:
+        return None
+    m = re.match(r'^([A-G]\+{0,4})', raw.strip())
+    return m.group(1) if m else None
+
+
+def extract_header_data(page) -> dict:
+    """Parse the <h1> header for address, postcode, city, neighbourhood."""
+    result: dict[str, Optional[str]] = {
+        "address": None,
+        "postcode": None,
+        "city": None,
+        "neighbourhood": None,
+    }
+    h1 = page.cssselect("h1")
+    if not h1:
+        return result
+
+    h1 = h1[0]
+    spans = h1.cssselect("span")
+
+    # First span: street address (e.g. "Transvaalstraat 62-4")
+    if len(spans) >= 1:
+        result["address"] = _text(spans[0]) or None
+
+    # Second span: "1092 HN Amsterdam" — split into postcode + city
+    if len(spans) >= 2:
+        loc_text = _text(spans[1])
+        pc_match = re.search(r'(\d{4}\s?[A-Z]{2})', loc_text)
+        if pc_match:
+            result["postcode"] = pc_match.group(1)
+            result["city"] = loc_text[pc_match.end():].strip() or None
+        elif loc_text:
+            # No postcode found — entire text is likely the city
+            result["city"] = loc_text
+
+    # Neighbourhood: child <a> with aria-label or text
+    links = h1.cssselect("a")
+    for link in links:
+        aria = (link.get("aria-label") or "").strip()
+        if aria:
+            result["neighbourhood"] = aria
+            break
+        link_text = _text(link)
+        if link_text:
+            result["neighbourhood"] = link_text
+            break
+
+    return result
+
+
 def parse_detail(html_text: str, global_id: int) -> dict:
     """Parse a Funda detail page HTML into enrichment fields."""
     page = lhtml.fromstring(html_text)
@@ -321,6 +396,14 @@ def parse_detail(html_text: str, global_id: int) -> dict:
     if acceptance and "log in" in acceptance.lower():
         acceptance = None  # behind login
 
+    # Energy label, construction type, object type
+    energy_label = extract_energy_label(dl)
+    construction_type = dl.get("Soort bouw", "").strip() or None
+    object_type = (dl.get("Soort appartement", "") or dl.get("Soort woning", "")).strip() or None
+
+    # Header: address, postcode, city, neighbourhood
+    header = extract_header_data(page)
+
     # ── Price from page text ─────────────────────────────────────────
     page_text = page.text_content() if page is not None else ""
     price_match = re.search(r'€\s?(\d{1,3}(?:\.\d{3})*)', page_text)
@@ -333,11 +416,12 @@ def parse_detail(html_text: str, global_id: int) -> dict:
     erfpacht = extract_erfpacht(html_text)
     photo_urls = extract_photos(page)
 
-    return {
+    result = {
         "global_id":          global_id,
-        "price_numeric":      price_numeric,
-        "price":              f"€ {price_numeric:,}" if price_numeric else None,
         "description":        description or None,
+        "energy_label":       energy_label,
+        "construction_type":  construction_type,
+        "object_type":        object_type,
         "year_built":         year_built,
         "num_rooms":          num_rooms,
         "num_bathrooms":      num_bathrooms,
@@ -360,6 +444,19 @@ def parse_detail(html_text: str, global_id: int) -> dict:
         "detail_enriched":    True,
         "detail_enriched_at": datetime.now(timezone.utc).isoformat(),
     }
+
+    # Only include price keys if detail page actually has a price —
+    # avoids overwriting prices already extracted from search cards.
+    if price_numeric is not None:
+        result["price_numeric"] = price_numeric
+        result["price"] = f"€ {price_numeric:,}"
+
+    # Only include header fields if non-empty — don't overwrite existing data with blanks.
+    for key in ("address", "postcode", "city", "neighbourhood"):
+        if header.get(key):
+            result[key] = header[key]
+
+    return result
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -447,9 +544,19 @@ def run_enrichment(
             log.info("  Waiting %.1fs...", delay)
             time.sleep(delay)
 
-        html_text = fetch_detail_page(session, detail_url)
+        html_text, status_code = fetch_detail_page(session, detail_url)
         if not html_text:
-            log.warning("  Failed to fetch — skipping")
+            if status_code in (404, 410):
+                # Listing removed from Funda — mark as sold
+                now = datetime.now(timezone.utc).isoformat()
+                conn.execute("""UPDATE listings SET is_active = 0, availability_status = 'sold',
+                    status_changed_at = ?, detail_enriched = 1, detail_enriched_at = ?
+                    WHERE global_id = ? AND availability_status != 'sold'""",
+                    (now, now, global_id))
+                conn.commit()
+                log.info("  Marked as sold (HTTP %d)", status_code)
+            else:
+                log.warning("  Failed to fetch — skipping")
             failed += 1
             continue
 

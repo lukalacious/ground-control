@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS listings (
     last_seen       DATETIME DEFAULT CURRENT_TIMESTAMP,
     is_active       BOOLEAN DEFAULT 1,
     availability_status TEXT DEFAULT 'available',
+    status_changed_at   DATETIME,
     description        TEXT,
     year_built         TEXT,
     num_rooms          INTEGER,
@@ -143,9 +144,17 @@ def init_db(db_path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.executescript(DB_SCHEMA)
+    # Migration: add status_changed_at for existing DBs
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(listings)").fetchall()}
+    if "status_changed_at" not in existing:
+        conn.execute("ALTER TABLE listings ADD COLUMN status_changed_at DATETIME")
+        log.info("Migration: added status_changed_at column")
     conn.commit()
     log.info("Database ready: %s", db_path)
     return conn
+
+
+_STATUS_RANK = {"available": 0, "negotiations": 1, "sold": 2}
 
 
 def upsert_listing(conn, listing: dict, search_type: str) -> str:
@@ -153,29 +162,40 @@ def upsert_listing(conn, listing: dict, search_type: str) -> str:
     gid = listing["global_id"]
 
     existing = conn.execute(
-        "SELECT price_numeric, is_active FROM listings WHERE global_id = ?", (gid,)
+        "SELECT price_numeric, is_active, availability_status FROM listings WHERE global_id = ?", (gid,)
     ).fetchone()
 
+    new_status = listing.get("availability_status", "available")
+
     if existing is None:
-        conn.execute("""INSERT INTO listings 
+        conn.execute("""INSERT INTO listings
             (global_id, address, city, postcode, neighbourhood, price, price_numeric,
              listing_url, detail_url, image_url, living_area, bedrooms,
-             listing_type, first_seen, last_seen, is_active, availability_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)""",
+             listing_type, first_seen, last_seen, is_active, availability_status,
+             status_changed_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)""",
             (gid, listing.get("address", ""), listing.get("city", ""),
              listing.get("postcode", ""), listing.get("neighbourhood", ""),
              listing.get("price", ""), listing.get("price_numeric"),
              listing.get("listing_url", ""), listing.get("detail_url", ""),
              listing.get("image_url", ""), listing.get("living_area"),
              listing.get("bedrooms"), search_type, now, now,
-             listing.get("availability_status", "available")))
+             new_status, now if new_status != "available" else None))
         return "new"
     else:
+        # Forward-only status transitions: available → negotiations → sold
+        old_status = existing["availability_status"] or "available"
+        if _STATUS_RANK.get(new_status, 0) <= _STATUS_RANK.get(old_status, 0):
+            new_status = old_status  # keep existing (higher) status
+        status_changed = new_status != old_status
+
         conn.execute("""UPDATE listings SET price = ?, price_numeric = ?,
             last_seen = ?, is_active = 1, availability_status = ?,
+            status_changed_at = CASE WHEN ? THEN ? ELSE status_changed_at END,
             image_url = ?, living_area = ?, bedrooms = ? WHERE global_id = ?""",
             (listing.get("price", ""), listing.get("price_numeric"),
-             now, listing.get("availability_status", "available"),
+             now, new_status,
+             status_changed, now,
              listing.get("image_url", ""), listing.get("living_area"),
              listing.get("bedrooms"), gid))
         return "updated" if existing["price_numeric"] != listing.get("price_numeric") else "unchanged"
@@ -187,8 +207,9 @@ def mark_inactive(conn, active_ids: set, city: str, search_type: str) -> int:
     placeholders = ",".join("?" * len(active_ids))
     now = datetime.now(timezone.utc).isoformat()
     cursor = conn.execute(f"""UPDATE listings SET is_active = 0, availability_status = 'sold',
-        last_seen = ? WHERE city COLLATE NOCASE = ? AND listing_type = ? AND is_active = 1
-        AND global_id NOT IN ({placeholders})""", (now, city, search_type, *active_ids))
+        last_seen = ?, status_changed_at = ?
+        WHERE city COLLATE NOCASE = ? AND listing_type = ? AND is_active = 1
+        AND global_id NOT IN ({placeholders})""", (now, now, city, search_type, *active_ids))
     return cursor.rowcount
 
 
@@ -221,27 +242,81 @@ def calculate_stats(conn):
 # Scraping
 # ──────────────────────────────────────────────────────────────────────
 
+def _find_card_container(element):
+    """Walk up ancestors to find the listing card container."""
+    el = element
+    for _ in range(10):
+        parent = el.getparent()
+        if parent is None:
+            break
+        text = parent.text_content() or ""
+        if '€' in text and 'm²' in text:
+            return parent
+        el = parent
+    return None
+
+
+def _extract_card_data(card_text: str) -> dict:
+    """Extract price, living area, and bedrooms from card text."""
+    data = {}
+
+    # Price: € 375.000 or € 1.595.000
+    price_match = re.search(r'€\s?(\d{1,3}(?:\.\d{3})*)', card_text)
+    if price_match:
+        data['price_numeric'] = int(price_match.group(1).replace('.', ''))
+        data['price'] = f"€ {data['price_numeric']:,}"
+
+    # Living area: 40 m²
+    area_match = re.search(r'(\d+)\s*m²', card_text)
+    if area_match:
+        data['living_area'] = int(area_match.group(1))
+
+    return data
+
+
+def _extract_status_from_card(card) -> str:
+    """Detect availability status from card badge text (Verkocht, Onder bod, etc.)."""
+    text = (card.text_content() or "").lower()
+    # Check "verkocht" first — "Verkocht onder voorbehoud" contains "voorbehoud"
+    if "verkocht" in text:
+        return "sold"
+    if "onder bod" in text or "voorbehoud" in text:
+        return "negotiations"
+    return "available"
+
+
+def _extract_bedrooms_from_card(card) -> int | None:
+    """Extract bedroom count from card list items (integer between m² and energy label)."""
+    for ul in card.cssselect('ul'):
+        items = [li.text_content().strip() for li in ul.cssselect('li')]
+        for item in items:
+            # Bedrooms are typically a standalone integer in the feature list
+            if item.isdigit():
+                return int(item)
+    return None
+
+
 def scrape_search_page(url: str) -> list[dict]:
-    """Scrape a Funda search page for listing links."""
+    """Scrape a Funda search page for listing links and card data."""
     fetcher = StealthyFetcher()
     page = fetcher.fetch(url, headless=True, network_idle=True)
-    
+
     if page.status != 200:
         log.warning("  HTTP %d for %s", page.status, url)
         return []
-    
+
     tree = lhtml.fromstring(page.html_content)
-    
-    # Extract all detail links
-    links = tree.xpath('//a[contains(@href, "/detail/koop/")]/@href')
-    
+
     listings = []
     seen = set()
-    for href in links:
+
+    # ── Regular listing cards ──────────────────────────────────────
+    address_links = tree.cssselect('a[data-testid="listingDetailsAddress"]')
+    for link in address_links:
+        href = link.get('href', '')
         if '/detail/koop/' not in href:
             continue
-        
-        # Extract global_id
+
         match = re.search(r'/(\d{8,})/', href)
         if not match:
             continue
@@ -249,25 +324,100 @@ def scrape_search_page(url: str) -> list[dict]:
         if gid in seen:
             continue
         seen.add(gid)
-        
+
         detail_url = href if href.startswith('http') else f"{DETAIL_BASE}{href}"
-        
+
+        # Extract address and postcode from link's child divs
+        divs = link.cssselect('div')
+        address = ""
+        postcode = ""
+        city = ""
+        if len(divs) >= 1:
+            spans = divs[0].cssselect('span')
+            address = spans[0].text_content().strip() if spans else divs[0].text_content().strip()
+        if len(divs) >= 2:
+            location_text = divs[1].text_content().strip()
+            pc_match = re.search(r'(\d{4}\s?[A-Z]{2})', location_text)
+            if pc_match:
+                postcode = pc_match.group(1)
+            # City is typically after the postcode
+            city_match = re.search(r'\d{4}\s?[A-Z]{2}\s+(.*)', location_text)
+            if city_match:
+                city = city_match.group(1).strip()
+
+        # Find the card container and extract data
+        card = _find_card_container(link)
+        card_data = {}
+        bedrooms = None
+        if card is not None:
+            card_text = card.text_content() or ""
+            card_data = _extract_card_data(card_text)
+            bedrooms = _extract_bedrooms_from_card(card)
+
+        status = _extract_status_from_card(card) if card is not None else "available"
+
         listings.append({
             "global_id": gid,
             "detail_url": detail_url,
             "listing_url": href,
-            "address": "",
-            "city": "",
-            "postcode": "",
+            "address": address,
+            "city": city,
+            "postcode": postcode,
             "neighbourhood": "",
-            "price": "",
-            "price_numeric": None,
+            "price": card_data.get("price", ""),
+            "price_numeric": card_data.get("price_numeric"),
             "image_url": "",
-            "living_area": None,
-            "bedrooms": None,
-            "availability_status": "available",
+            "living_area": card_data.get("living_area"),
+            "bedrooms": bedrooms,
+            "availability_status": status,
         })
-    
+
+    # ── Top-position listings ──────────────────────────────────────
+    top_cards = tree.cssselect('[data-testid="top-position-listing"]')
+    for top in top_cards:
+        links_in_top = top.cssselect('a[href*="/detail/koop/"]')
+        for a in links_in_top:
+            href = a.get('href', '')
+            match = re.search(r'/(\d{8,})/', href)
+            if not match:
+                continue
+            gid = int(match.group(1))
+            if gid in seen:
+                continue
+            seen.add(gid)
+
+            detail_url = href if href.startswith('http') else f"{DETAIL_BASE}{href}"
+
+            # Top-position: price often in <span class="font-normal">City, € X k.k.</span>
+            top_text = top.text_content() or ""
+            card_data = _extract_card_data(top_text)
+
+            # Address from the link text (before the font-normal span)
+            address = ""
+            p_els = a.cssselect('p')
+            if p_els:
+                # Get text before the span
+                p_text = p_els[0].text or ""
+                address = p_text.strip().rstrip(',').strip()
+
+            status = _extract_status_from_card(top)
+
+            listings.append({
+                "global_id": gid,
+                "detail_url": detail_url,
+                "listing_url": href,
+                "address": address,
+                "city": "",
+                "postcode": "",
+                "neighbourhood": "",
+                "price": card_data.get("price", ""),
+                "price_numeric": card_data.get("price_numeric"),
+                "image_url": "",
+                "living_area": card_data.get("living_area"),
+                "bedrooms": None,
+                "availability_status": status,
+            })
+
     return listings
 
 

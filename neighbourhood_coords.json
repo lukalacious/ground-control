@@ -1756,5 +1756,15 @@
     4.89863162,
     "Nieuwmarkt/Lastage",
     "Centrum"
+  ],
+  "Diepenbrockbuurt": [
+    52.34652862,
+    4.88226006,
+    "Apollobuurt"
+  ],
+  "E-buurt": [
+    52.3245942,
+    4.96381051,
+    "Ganzenhoef e.o."
   ]
 }

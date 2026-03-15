@@ -27,10 +27,10 @@ echo "--- [3/4] Enriching new listings with detail metadata..."
 python3 "$DIR/detail_enricher.py" \
     --db "$DIR/ground_control.db"
 
-# Step 4: Regenerate dashboard with fresh data
+# Step 4: Regenerate dashboard with fresh data (outputs to public/)
 echo "--- [4/4] Generating dashboard..."
 python3 "$DIR/generate_dashboard.py" \
     --db "$DIR/ground_control.db" \
-    --output "$DIR/ground_control_dashboard.html"
+    --output-dir "$DIR/public"
 
 echo "=== Done: $(date) ==="

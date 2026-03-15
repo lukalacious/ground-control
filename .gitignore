@@ -6,12 +6,15 @@ ground_control.db
 ground_control_dashboard.html
 logs/
 images/
-public/
 *.log
 *.pkl
 .vercel
 *.png
 *.svg
+neighbourhood_coords.json
+
+# Ignore all root-level html except public/
 *.html
 !public/
-neighbourhood_coords.json
+!public/index.html
+!public/listings.json
