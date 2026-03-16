@@ -47,7 +47,10 @@ def score_listings(db_path: str) -> list[dict]:
                   num_floors, floor_level, outdoor_area_m2, volume_m3, amenities,
                   insulation, heating, location_type, has_balcony, balcony_type,
                   parking_type, vve_contribution, erfpacht, acceptance, photo_urls
-           FROM listings WHERE price_numeric > 0"""
+           FROM listings
+           WHERE price_numeric > 0
+             AND detail_url NOT LIKE '%parkeergelegenheid%'
+             AND living_area IS NOT NULL AND living_area > 0"""
     ).fetchall()
 
     now = datetime.now(timezone.utc)

@@ -39,6 +39,8 @@ def get_listings(filters=None):
                construction_type, agent_name, detail_url, image_url, is_active
         FROM listings 
         WHERE is_active = 1
+          AND detail_url NOT LIKE '%parkeergelegenheid%'
+          AND living_area IS NOT NULL AND living_area > 0
     """
     params = []
     

@@ -1200,7 +1200,7 @@ function updateMap() {{
             popupHtml += '<div style="margin-top:6px">';
             top5.forEach(l => {{
                 popupHtml += `<div class="popup-listing">`;
-                popupHtml += `<a href="${{l.detail_url}}" target="_blank">&euro;${{l.price_numeric.toLocaleString()}}</a>`;
+                popupHtml += `<a href="#" onclick="openModal(${{l.global_id}});return false;">&euro;${{l.price_numeric.toLocaleString()}}</a>`;
                 popupHtml += ` &middot; ${{l.living_area || '?'}}m&sup2;`;
                 if (l.price_m2) popupHtml += ` &middot; &euro;${{Math.round(l.price_m2).toLocaleString()}}/m&sup2;`;
                 popupHtml += `<br><span style="color:#888;font-size:11px">${{l.address || ''}}</span>`;
