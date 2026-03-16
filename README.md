@@ -1,15 +1,39 @@
 # Ground Control
 
-Amsterdam apartment hunting dashboard powered by an Elasticsearch property API.
+ML-powered price forecasting for Amsterdam real estate. Built to identify undervalued listings as they hit the market.
 
-Scrapes listings nightly, scores them by value (price/m² vs neighbourhood and city averages), and serves an interactive dashboard with map view, neighbourhood filtering, and price drop tracking.
+## What it does
+
+Scrapes the Amsterdam property market nightly, trains a gradient-boosted regression model on 40+ features (structural, spatial, amenity, text-derived), and predicts fair-market prices for every active listing. Listings priced below their predicted value surface as potential deals via a daily Telegram morning report and a scoring system that ranks by undervaluation.
+
+## Model
+
+- **Algorithm**: `HistGradientBoostingRegressor` (scikit-learn) with 5-fold cross-validation
+- **Target**: log-transformed listing price
+- **Features**: living area, building age, distance to city center/Zuidas, energy label, floor level, VvE costs, insulation/heating/amenity flags, NLP signals from descriptions (renovated, luxury, monument, new-build), postcode, erfpacht status, and more
+- **Segments**: separate models for apartments and houses to capture different price drivers
+- **Evaluation**: R², MAE, MdAPE, accuracy bands (% within 5/10/15/20% of actual)
+
+## Pipeline
+
+```
+scraper.py          → Nightly full scrape of Amsterdam listings via property search API
+detail_enricher.py  → Enriches each listing with 30+ fields from detail pages
+geocode_neighbourhoods.py → Geocodes new neighbourhoods via PDOK Locatieserver
+scorer.py           → Composite undervalue score (neighbourhood avg, city avg, days on market)
+train_model.py      → Trains apartment + house price models, writes predictions to DB
+morning_report.py   → Telegram alert with new listings, predicted prices, and map
+```
+
+Orchestrated by `run_nightly.sh` (scheduled via LaunchAgent, 6 AM daily).
 
 ## Stack
 
-- **Scraper**: Python + curl_cffi (TLS fingerprinting) hitting the property search API
-- **Database**: SQLite — listings, price history, neighbourhood stats
-- **Dashboard**: Self-contained HTML with Leaflet map, filters, and scoring
-- **Serving**: Python HTTP server + Tailscale Serve
+- **Scraper**: Python + curl_cffi (TLS fingerprinting)
+- **ML**: scikit-learn, pandas, NumPy
+- **Database**: SQLite — listings, price history, neighbourhood stats, model predictions
+- **Alerts**: Telegram bot (morning report with new listing map)
+- **Dashboard**: self-contained HTML with Leaflet map, filters, and model diagnostics (presentation layer only)
 
 ## Setup
 
@@ -23,25 +47,18 @@ pip install -r requirements.txt
 
 ```bash
 # Full scrape
-python3 scraper.py --city amsterdam --type buy --property-type apartment --db ground_control.db
+python3 scraper.py --city amsterdam --type buy --db ground_control.db
 
-# Delta scrape (only new/changed)
-python3 scraper.py --city amsterdam --type buy --property-type apartment --delta --db ground_control.db
+# Enrich detail metadata
+python3 detail_enricher.py --db ground_control.db
 
-# Generate dashboard
-python3 generate_dashboard.py --db ground_control.db --output ground_control_dashboard.html
+# Train price model
+python3 train_model.py
 
-# Open in browser
-python3 generate_dashboard.py --db ground_control.db --output ground_control_dashboard.html --open
+# Morning report (new listings with predicted prices)
+python3 morning_report.py              # send via Telegram
+python3 morning_report.py --dry-run    # preview locally
+
+# Generate dashboard (optional visualization)
+python3 generate_dashboard.py --db ground_control.db --output-dir public/
 ```
-
-## Nightly automation
-
-`run_nightly.sh` runs the full scrape, geocodes new neighbourhoods, and regenerates the dashboard. Scheduled via `com.groundcontrol.scraper.plist` (macOS LaunchAgent, 6AM daily).
-
-## Scoring
-
-Each listing gets a composite score based on:
-- Price per m² vs neighbourhood average (40%)
-- Price per m² vs city average (30%)
-- Days on market (30%)
