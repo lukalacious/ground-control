@@ -943,7 +943,9 @@ function applyFilters() {{
             if (energy !== 'A' && energy !== 'E' && el !== energy) return false;
         }}
         if (!activeStatuses.has(l.availability_status || 'available')) return false;
-        if (excludedHoods.has(l.neighbourhood)) return false;
+        if (excludedHoods.size > 0) {{
+            if (!l.neighbourhood || !NEIGHBOURHOOD_STATS[l.neighbourhood] || excludedHoods.has(l.neighbourhood)) return false;
+        }}
         if (quickFilters.new && !isNew(l)) return false;
         if (quickFilters.drop && !hasDrop(l)) return false;
         if (searchTerm && !matchesSearch(l, searchTerm)) return false;
