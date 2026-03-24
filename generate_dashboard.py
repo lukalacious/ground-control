@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Generate the Ground Control house-hunting dashboard.
 
+DEPRECATED: This file is kept as a fallback. The Next.js frontend now serves
+data live from Neon PostgreSQL via API routes. This generator will be removed
+once the Next.js frontend is fully live.
+
 Outputs:
   public/index.html   — HTML shell with CSS + JS (~80KB)
   public/listings.json — All listing data + stats (~3-5MB)
@@ -8,17 +12,35 @@ Outputs:
 
 import argparse
 import json
+import os
 import random
-import sqlite3
 import webbrowser
 from datetime import datetime, timezone
 from pathlib import Path
 
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from scorer import score_listings
-
-DB_PATH = Path(__file__).parent / "ground_control.db"
 PUBLIC_DIR = Path(__file__).parent / "public"
 COORDS_PATH = Path(__file__).parent / "neighbourhood_coords.json"
+
+
+def get_db_url():
+    """Read DATABASE_URL from environment or web/.env file."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        env_file = Path(__file__).parent / "web" / ".env"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                if line.startswith("DATABASE_URL="):
+                    url = line.split("=", 1)[1].strip().strip('"')
+                    break
+    return url
+
+
+def get_connection():
+    """Get a psycopg2 connection to Neon PostgreSQL."""
+    return psycopg2.connect(get_db_url(), cursor_factory=RealDictCursor)
 
 # Approximate Amsterdam postcode area centers (4-digit prefix -> lat/lon)
 POSTCODE_COORDS = {
@@ -71,13 +93,14 @@ def assign_coords(listings: list[dict]) -> None:
             listing["longitude"] = None
 
 
-def get_price_history(db_path: str) -> dict[int, list[dict]]:
+def get_price_history() -> dict[int, list[dict]]:
     """Get price history grouped by global_id."""
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    rows = conn.execute(
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
         "SELECT global_id, old_price, new_price, recorded_at FROM price_history ORDER BY recorded_at DESC"
-    ).fetchall()
+    )
+    rows = cur.fetchall()
     conn.close()
 
     history: dict[int, list[dict]] = {}
@@ -85,40 +108,49 @@ def get_price_history(db_path: str) -> dict[int, list[dict]]:
         gid = r["global_id"]
         if gid not in history:
             history[gid] = []
+        recorded_at = r["recorded_at"]
+        if recorded_at:
+            date_str = recorded_at.isoformat()[:10] if hasattr(recorded_at, 'isoformat') else str(recorded_at)[:10]
+        else:
+            date_str = None
         history[gid].append({
             "old_price": r["old_price"],
             "new_price": r["new_price"],
-            "date": r["recorded_at"][:10] if r["recorded_at"] else None,
+            "date": date_str,
         })
     return history
 
 
-def get_stats(db_path: str) -> dict:
+def get_stats() -> dict:
     """Get latest city stats."""
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    row = conn.execute("SELECT * FROM city_stats ORDER BY calculated_at DESC LIMIT 1").fetchone()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM city_stats ORDER BY calculated_at DESC LIMIT 1")
+    row = cur.fetchone()
     conn.close()
     if row:
         return dict(row)
     return {"avg_price_m2": 0, "median_price": 0, "median_days_on_market": 0, "listing_count": 0}
 
 
-def get_neighbourhood_stats(db_path: str) -> dict:
+def get_neighbourhood_stats() -> dict:
     """Get neighbourhood stats as a dict keyed by name."""
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    rows = conn.execute("SELECT * FROM neighbourhood_stats ORDER BY listing_count DESC").fetchall()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM neighbourhood_stats ORDER BY listing_count DESC")
+    rows = cur.fetchall()
     conn.close()
     return {r["neighbourhood"]: {"avg_price_m2": round(r["avg_price_m2"], 1), "median_price": r["median_price"], "count": r["listing_count"]} for r in rows}
 
 
-def count_new_today(db_path: str) -> int:
+def count_new_today() -> int:
     """Count listings first seen in the last 24h."""
-    conn = sqlite3.connect(db_path)
-    count = conn.execute(
-        "SELECT COUNT(*) FROM listings WHERE is_active = 1 AND first_seen >= datetime('now', '-1 day')"
-    ).fetchone()[0]
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT COUNT(*) as count FROM listings WHERE is_active = true AND first_seen >= NOW() - INTERVAL '1 day'"
+    )
+    count = cur.fetchone()["count"]
     conn.close()
     return count
 
@@ -1566,24 +1598,29 @@ document.addEventListener('DOMContentLoaded', loadData);
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate Ground Control dashboard")
-    parser.add_argument("--db", default=str(DB_PATH))
+    parser = argparse.ArgumentParser(description="Generate Ground Control dashboard (DEPRECATED)")
     parser.add_argument("--output-dir", default=str(PUBLIC_DIR))
     parser.add_argument("--open", action="store_true", help="Open in browser after generating")
     args = parser.parse_args()
 
-    db = args.db
+    import warnings
+    warnings.warn(
+        "generate_dashboard.py is deprecated. The Next.js frontend now serves data live from Neon.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Score all listings
-    scored = score_listings(db)
+    scored = score_listings()
 
     # Supplementary data
-    price_hist = get_price_history(db)
-    stats = get_stats(db)
-    hood_stats = get_neighbourhood_stats(db)
-    stats["new_today"] = count_new_today(db)
+    price_hist = get_price_history()
+    stats = get_stats()
+    hood_stats = get_neighbourhood_stats()
+    stats["new_today"] = count_new_today()
 
     # Load neighbourhood coordinates and build map data
     coords = load_coords(COORDS_PATH)

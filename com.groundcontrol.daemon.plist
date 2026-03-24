@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.groundcontrol.daemon</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/lukeroberts/ground-control/venv/bin/python</string>
+        <string>/Users/lukeroberts/ground-control/scheduler.py</string>
+    </array>
+    <key>StandardOutPath</key>
+    <string>/Users/lukeroberts/ground-control/logs/scheduler.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/lukeroberts/ground-control/logs/scheduler_error.log</string>
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>6</integer>
+            <key>Minute</key>
+            <integer>55</integer>
+        </dict>
+    </array>
+    <key>KeepAlive</key>
+    <false/>
+    <key>WorkingDirectory</key>
+    <string>/Users/lukeroberts/ground-control</string>
+</dict>
+</plist>

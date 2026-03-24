@@ -1,10 +1,11 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -21,6 +22,7 @@ model Listing {
   // Price
   price             String?   // Formatted text: "€ 349,000"
   priceNumeric      Int?      @map("price_numeric")
+  previousPrice     Int?      @map("previous_price")
 
   // URLs
   listingUrl        String?   @map("listing_url")

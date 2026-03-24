@@ -1,5 +1,5 @@
 #!/bin/bash
-# Ground Control nightly scrape + enrich + dashboard generation
+# Ground Control nightly scrape + enrich + analytics pipeline
 set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -11,26 +11,34 @@ source "$DIR/venv/bin/activate"
 echo "=== Ground Control Nightly Run: $(date) ==="
 
 # Step 1: Full scrape (not --delta) so mark_inactive can detect sold listings
-echo "--- [1/4] Scraping listings..."
+echo "--- [1/7] Scraping listings..."
 python3 "$DIR/scraper.py" \
     --city amsterdam \
-    --type buy \
-    --db "$DIR/ground_control.db"
+    --type buy
 
 # Step 2: Geocode any new neighbourhoods
-echo "--- [2/4] Geocoding neighbourhoods..."
+echo "--- [2/7] Geocoding neighbourhoods..."
 python3 "$DIR/geocode_neighbourhoods.py"
 
 # Step 3: Enrich new listings with detail page metadata
 # Only enriches unenriched active listings (skips already-enriched ones)
-echo "--- [3/4] Enriching new listings with detail metadata..."
-python3 "$DIR/detail_enricher.py" \
-    --db "$DIR/ground_control.db"
+echo "--- [3/7] Enriching new listings with detail metadata..."
+python3 "$DIR/detail_enricher.py"
 
-# Step 4: Regenerate dashboard with fresh data (outputs to public/)
-echo "--- [4/4] Generating dashboard..."
-python3 "$DIR/generate_dashboard.py" \
-    --db "$DIR/ground_control.db" \
-    --output-dir "$DIR/public"
+# Step 3b: Extract erfpacht intelligence
+echo "--- [4/7] Extracting erfpacht intelligence..."
+python3 "$DIR/erfpacht_extractor.py"
+
+# Step 3c: Translate descriptions
+echo "--- [5/7] Translating descriptions..."
+python3 "$DIR/translator.py" --limit 100
+
+# Step 4: Recompute neighbourhood analytics
+echo "--- [6/7] Computing neighbourhood analytics..."
+python3 "$DIR/neighbourhood_analytics.py"
+
+# Step 5: Train model and write predictions
+echo "--- [7/7] Training price model..."
+python3 "$DIR/train_model.py"
 
 echo "=== Done: $(date) ==="

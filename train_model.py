@@ -2,33 +2,54 @@
 """Train separate apartment + house price models and write predictions to DB."""
 import argparse
 import json
+import os
 import re
 import pandas as pd
 import numpy as np
-import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from sklearn.model_selection import KFold, RandomizedSearchCV
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
 from sklearn.preprocessing import OrdinalEncoder
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import joblib
 import warnings
 warnings.filterwarnings('ignore')
 
 HISTORY_PATH = Path(__file__).parent / 'model_history.jsonl'
 
-DB_PATH = 'ground_control.db'
-
 MODEL_PARAMS = dict(
     max_iter=500, max_depth=8, learning_rate=0.05,
     min_samples_leaf=10, l2_regularization=0.5, random_state=42
 )
 
+
+# ── database ────────────────────────────────────────────────────────────
+
+def get_db_url():
+    """Read DATABASE_URL from environment or web/.env file."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        env_file = Path(__file__).parent / "web" / ".env"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                if line.startswith("DATABASE_URL="):
+                    url = line.split("=", 1)[1].strip().strip('"')
+                    break
+    return url
+
+
+def get_connection():
+    """Get a psycopg2 connection to Neon PostgreSQL."""
+    return psycopg2.connect(get_db_url(), cursor_factory=RealDictCursor)
+
+
 # ── helpers ──────────────────────────────────────────────────────────────
 
 def parse_floor_num(s):
-    """'3e woonlaag' → 3, 'Begane grond' → 0"""
+    """'3e woonlaag' -> 3, 'Begane grond' -> 0"""
     if pd.isna(s):
         return np.nan
     s = s.lower().strip()
@@ -39,10 +60,10 @@ def parse_floor_num(s):
 
 
 def parse_vve_amount(s):
-    """Extract €amount from messy VvE text, cap at 5000."""
+    """Extract amount from messy VvE text, cap at 5000."""
     if pd.isna(s):
         return np.nan
-    # Match € followed by digits with optional . and , separators
+    # Match followed by digits with optional . and , separators
     m = re.search(r'€\s*([\d]+(?:[.,]\d+)*)', s)
     if not m:
         return np.nan
@@ -370,7 +391,7 @@ def main():
     args = parser.parse_args()
 
     print('Loading data...')
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     df = pd.read_sql_query('SELECT * FROM listings', conn)
     print(f'Loaded {len(df)} listings')
 
@@ -500,20 +521,14 @@ def main():
         house_df[['global_id', 'predicted_price', 'residual']],
     ])
 
-    cursor = conn.cursor()
-    # Ensure columns exist
-    for col in ['predicted_price', 'residual']:
-        try:
-            cursor.execute(f"ALTER TABLE listings ADD COLUMN {col} REAL")
-        except sqlite3.OperationalError:
-            pass
+    cur = conn.cursor()
 
     # Reset all predictions first (parking spots etc. should have NULL)
-    cursor.execute("UPDATE listings SET predicted_price = NULL, residual = NULL")
+    cur.execute("UPDATE listings SET predicted_price = NULL, residual = NULL")
 
     for _, row in all_pred.iterrows():
-        cursor.execute(
-            "UPDATE listings SET predicted_price = ?, residual = ? WHERE global_id = ?",
+        cur.execute(
+            "UPDATE listings SET predicted_price = %s, residual = %s WHERE global_id = %s",
             (row['predicted_price'], row['residual'], row['global_id'])
         )
 
@@ -536,8 +551,8 @@ def main():
             # Fall back to URL slug
             slug = re.search(r'/([^/]+)/\d+/?$', str(r.get('detail_url', '')))
             addr = slug.group(1)[:38] if slug else '?'
-        area = f'{r["living_area"]:.0f}m²' if pd.notna(r['living_area']) else '  n/a'
-        print(f'{addr:40s} €{r["price_numeric"]:>10,.0f} €{r["predicted_price"]:>10,.0f} {r["residual_pct"]:>+6.1f}% {area:>6s}')
+        area = f'{r["living_area"]:.0f}m2' if pd.notna(r['living_area']) else '  n/a'
+        print(f'{addr:40s} EUR{r["price_numeric"]:>10,.0f} EUR{r["predicted_price"]:>10,.0f} {r["residual_pct"]:>+6.1f}% {area:>6s}')
 
     conn.close()
 
@@ -545,8 +560,8 @@ def main():
     print(f'\n{"="*50}')
     print('SUMMARY')
     print(f'{"="*50}')
-    print(f'Apartment:  CV R² = {apt_metrics["r2"]:.3f}  |  MdAPE = {apt_metrics["mdape"]:.1f}%  |  MAE = €{apt_metrics["mae"]:,.0f}')
-    print(f'House:      CV R² = {house_metrics["r2"]:.3f}  |  MdAPE = {house_metrics["mdape"]:.1f}%  |  MAE = €{house_metrics["mae"]:,.0f}')
+    print(f'Apartment:  CV R2 = {apt_metrics["r2"]:.3f}  |  MdAPE = {apt_metrics["mdape"]:.1f}%  |  MAE = EUR{apt_metrics["mae"]:,.0f}')
+    print(f'House:      CV R2 = {house_metrics["r2"]:.3f}  |  MdAPE = {house_metrics["mdape"]:.1f}%  |  MAE = EUR{house_metrics["mae"]:,.0f}')
 
 
 if __name__ == '__main__':

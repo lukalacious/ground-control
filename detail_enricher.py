@@ -25,6 +25,7 @@ New fields extracted:
   - erfpacht            Leasehold / erfpacht info (free text)
   - acceptance          Delivery date / oplevering (Aanvaarding)
   - photo_urls          JSON array of all photo URLs from the page
+  - floorplan_urls      JSON array of floorplan image URLs from the page
   - energy_label        Energy rating A-G (Energielabel)
   - construction_type   "Bestaande bouw" or "Nieuwbouw" (Soort bouw)
   - object_type         Property type (Soort woning / Soort appartement)
@@ -55,13 +56,16 @@ Usage:
 import argparse
 import json
 import logging
+import os
 import random
 import re
-import sqlite3
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from curl_cffi import requests as http_client
 from lxml import html as lhtml
 
@@ -83,56 +87,25 @@ log = logging.getLogger("detail-enricher")
 
 
 # ──────────────────────────────────────────────────────────────────────
-# Schema migration — add enrichment columns to listings table
+# Database connection
 # ──────────────────────────────────────────────────────────────────────
 
-ENRICHMENT_COLUMNS = {
-    "description":        "TEXT",
-    "energy_label":       "TEXT",
-    "construction_type":  "TEXT",
-    "object_type":        "TEXT",
-    "address":            "TEXT",
-    "postcode":           "TEXT",
-    "city":               "TEXT",
-    "neighbourhood":      "TEXT",
-    "year_built":         "TEXT",
-    "num_rooms":          "INTEGER",
-    "num_bathrooms":      "INTEGER",
-    "bathroom_features":  "TEXT",
-    "num_floors":         "INTEGER",
-    "floor_level":        "TEXT",
-    "outdoor_area_m2":    "INTEGER",
-    "volume_m3":          "INTEGER",
-    "amenities":          "TEXT",
-    "insulation":         "TEXT",
-    "heating":            "TEXT",
-    "location_type":      "TEXT",
-    "has_balcony":        "BOOLEAN DEFAULT 0",
-    "balcony_type":       "TEXT",
-    "parking_type":       "TEXT",
-    "vve_contribution":   "TEXT",
-    "erfpacht":           "TEXT",
-    "acceptance":         "TEXT",
-    "photo_urls":         "TEXT",
-    "detail_enriched":    "BOOLEAN DEFAULT 0",
-    "detail_enriched_at": "DATETIME",
-    "status_changed_at":  "DATETIME",
-}
+def get_db_url():
+    """Read DATABASE_URL from environment or web/.env file."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        env_file = Path(__file__).parent / "web" / ".env"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                if line.startswith("DATABASE_URL="):
+                    url = line.split("=", 1)[1].strip().strip('"')
+                    break
+    return url
 
 
-def migrate_schema(conn: sqlite3.Connection) -> None:
-    """Add enrichment columns if not present."""
-    existing = {row[1] for row in conn.execute("PRAGMA table_info(listings)").fetchall()}
-    added = []
-    for col, col_type in ENRICHMENT_COLUMNS.items():
-        if col not in existing:
-            conn.execute(f"ALTER TABLE listings ADD COLUMN {col} {col_type}")
-            added.append(col)
-    if added:
-        conn.commit()
-        log.info("Schema: added %d new column(s): %s", len(added), ", ".join(added))
-    else:
-        log.info("Schema: all enrichment columns present")
+def get_connection():
+    """Get a psycopg2 connection to Neon PostgreSQL."""
+    return psycopg2.connect(get_db_url(), cursor_factory=RealDictCursor)
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -198,7 +171,7 @@ def _text(el) -> str:
 
 
 def build_dl_map(page) -> dict[str, str]:
-    """Build a flat label→value dict from all <dl><dt><dd> pairs on the page."""
+    """Build a flat label->value dict from all <dl><dt><dd> pairs on the page."""
     result = {}
     for dl in page.cssselect("dl"):
         dts = dl.cssselect("dt")
@@ -248,6 +221,39 @@ def extract_photos(page) -> list[str]:
                 seen.add(src)
                 photos.append(src)
     return photos
+
+
+def extract_floorplan_urls(page) -> list[str]:
+    """Extract floorplan image URLs from the page.
+
+    Floorplan images on Funda typically have 'plattegrond' in the URL,
+    alt text, or surrounding link text.
+    """
+    floorplans = []
+    seen = set()
+    for img in page.cssselect("img"):
+        src = img.get("src", "") or img.get("data-src", "")
+        alt = (img.get("alt", "") or "").lower()
+        if not src:
+            continue
+        # Check if this looks like a floorplan
+        is_floorplan = False
+        if "plattegrond" in src.lower() or "floorplan" in src.lower():
+            is_floorplan = True
+        elif "plattegrond" in alt or "floorplan" in alt:
+            is_floorplan = True
+        else:
+            # Check parent link for floorplan indicators
+            parent = img.getparent()
+            if parent is not None and parent.tag == "a":
+                href = (parent.get("href", "") or "").lower()
+                if "plattegrond" in href or "floorplan" in href:
+                    is_floorplan = True
+
+        if is_floorplan and src not in seen:
+            seen.add(src)
+            floorplans.append(src)
+    return floorplans
 
 
 def extract_vve(html_text: str) -> str:
@@ -342,20 +348,20 @@ def parse_detail(html_text: str, global_id: int) -> dict:
 
     year_built = dl.get("Bouwjaar", "").strip() or None
 
-    # Rooms: "3 kamers (2 slaapkamers)" → 3 rooms, 2 bedrooms
+    # Rooms: "3 kamers (2 slaapkamers)" -> 3 rooms, 2 bedrooms
     rooms_raw = dl.get("Aantal kamers", "")
     num_rooms = _parse_int(rooms_raw.split("kamers")[0]) if "kamers" in rooms_raw else _parse_int(rooms_raw)
 
-    # Bathrooms: "1 badkamer en 1 apart toilet" → 1
+    # Bathrooms: "1 badkamer en 1 apart toilet" -> 1
     bath_raw = dl.get("Aantal badkamers", "")
     num_bathrooms = _parse_int(bath_raw.split("badkamer")[0]) if "badkamer" in bath_raw else _parse_int(bath_raw)
     bathroom_features = dl.get("Badkamervoorzieningen", "").strip() or None
 
-    # Floors: "2 woonlagen" → 2
+    # Floors: "2 woonlagen" -> 2
     floors_raw = dl.get("Aantal woonlagen", "")
     num_floors = _parse_int(floors_raw)
 
-    # Floor level: "1e woonlaag" → as text
+    # Floor level: "1e woonlaag" -> as text
     floor_level = dl.get("Gelegen op", "").strip() or None
 
     # Outdoor area: "Gebouwgebonden buitenruimte" or "Tuin"
@@ -415,6 +421,7 @@ def parse_detail(html_text: str, global_id: int) -> dict:
     vve_contribution = extract_vve(html_text)
     erfpacht = extract_erfpacht(html_text)
     photo_urls = extract_photos(page)
+    floorplan_urls = extract_floorplan_urls(page)
 
     result = {
         "global_id":          global_id,
@@ -441,6 +448,7 @@ def parse_detail(html_text: str, global_id: int) -> dict:
         "erfpacht":           erfpacht or None,
         "acceptance":         acceptance,
         "photo_urls":         json.dumps(photo_urls) if photo_urls else None,
+        "floorplan_urls":     json.dumps(floorplan_urls) if floorplan_urls else None,
         "detail_enriched":    True,
         "detail_enriched_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -463,44 +471,47 @@ def parse_detail(html_text: str, global_id: int) -> dict:
 # Database writes
 # ──────────────────────────────────────────────────────────────────────
 
-def write_enrichment(conn: sqlite3.Connection, data: dict) -> None:
+def write_enrichment(conn, data: dict) -> None:
     """Write enrichment data back to the listings table."""
     fields = [k for k in data if k != "global_id"]
-    set_clause = ", ".join(f"{f} = ?" for f in fields)
+    set_clause = ", ".join(f"{f} = %s" for f in fields)
     values = [data[f] for f in fields]
     values.append(data["global_id"])
-    conn.execute(
-        f"UPDATE listings SET {set_clause} WHERE global_id = ?",
+    cur = conn.cursor()
+    cur.execute(
+        f"UPDATE listings SET {set_clause} WHERE global_id = %s",
         values,
     )
     conn.commit()
 
 
-def get_unenriched(conn: sqlite3.Connection, limit: Optional[int] = None,
+def get_unenriched(conn, limit: Optional[int] = None,
                    force: bool = False, specific_id: Optional[int] = None) -> list[tuple[int, str]]:
     """Return (global_id, detail_url) for listings needing enrichment."""
+    cur = conn.cursor()
     if specific_id:
-        rows = conn.execute(
-            "SELECT global_id, detail_url FROM listings WHERE global_id = ? AND detail_url != ''",
+        cur.execute(
+            "SELECT global_id, detail_url FROM listings WHERE global_id = %s AND detail_url != ''",
             (specific_id,),
-        ).fetchall()
+        )
     elif force:
         query = "SELECT global_id, detail_url FROM listings WHERE detail_url != '' ORDER BY first_seen DESC"
         if limit:
             query += f" LIMIT {limit}"
-        rows = conn.execute(query).fetchall()
+        cur.execute(query)
     else:
         query = """
             SELECT global_id, detail_url FROM listings
-            WHERE (detail_enriched IS NULL OR detail_enriched = 0)
+            WHERE (detail_enriched IS NULL OR detail_enriched = false)
               AND detail_url != ''
-              AND is_active = 1
+              AND is_active = true
             ORDER BY first_seen DESC
         """
         if limit:
             query += f" LIMIT {limit}"
-        rows = conn.execute(query).fetchall()
-    return [(r[0], r[1]) for r in rows]
+        cur.execute(query)
+    rows = cur.fetchall()
+    return [(r["global_id"], r["detail_url"]) for r in rows]
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -508,16 +519,13 @@ def get_unenriched(conn: sqlite3.Connection, limit: Optional[int] = None,
 # ──────────────────────────────────────────────────────────────────────
 
 def run_enrichment(
-    db_path: str,
     limit: Optional[int] = None,
     force: bool = False,
     specific_id: Optional[int] = None,
     dry_run: bool = False,
 ) -> dict:
     """Run enrichment on unenriched listings."""
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    migrate_schema(conn)
+    conn = get_connection()
 
     targets = get_unenriched(conn, limit=limit, force=force, specific_id=specific_id)
     total = len(targets)
@@ -549,9 +557,10 @@ def run_enrichment(
             if status_code in (404, 410):
                 # Listing removed — mark as sold
                 now = datetime.now(timezone.utc).isoformat()
-                conn.execute("""UPDATE listings SET is_active = 0, availability_status = 'sold',
-                    status_changed_at = ?, detail_enriched = 1, detail_enriched_at = ?
-                    WHERE global_id = ? AND availability_status != 'sold'""",
+                cur = conn.cursor()
+                cur.execute("""UPDATE listings SET is_active = false, availability_status = 'sold',
+                    status_changed_at = %s, detail_enriched = true, detail_enriched_at = %s
+                    WHERE global_id = %s AND availability_status != 'sold'""",
                     (now, now, global_id))
                 conn.commit()
                 log.info("  Marked as sold (HTTP %d)", status_code)
@@ -570,17 +579,20 @@ def run_enrichment(
         if dry_run:
             log.info("  [DRY RUN] Parsed:")
             for k, v in data.items():
-                if k not in ("global_id", "detail_enriched_at", "photo_urls"):
+                if k not in ("global_id", "detail_enriched_at", "photo_urls", "floorplan_urls"):
                     if v:
                         log.info("    %-25s %s", k + ":", v)
             if data.get("photo_urls"):
                 urls = json.loads(data["photo_urls"])
                 log.info("    %-25s %d photos", "photo_urls:", len(urls))
+            if data.get("floorplan_urls"):
+                urls = json.loads(data["floorplan_urls"])
+                log.info("    %-25s %d floorplans", "floorplan_urls:", len(urls))
         else:
             write_enrichment(conn, data)
             enriched_fields = [k for k, v in data.items()
                                if v and k not in ("global_id", "detail_enriched", "detail_enriched_at")]
-            log.info("  ✓ Saved: %s", ", ".join(enriched_fields[:8]))
+            log.info("  Saved: %s", ", ".join(enriched_fields[:8]))
 
         success += 1
 
@@ -616,7 +628,6 @@ Examples:
   python detail_enricher.py --limit 100
         """,
     )
-    parser.add_argument("--db",       default="ground_control.db")
     parser.add_argument("--limit",    type=int, default=None)
     parser.add_argument("--force",    action="store_true")
     parser.add_argument("--id",       type=int, default=None, dest="specific_id")
@@ -624,7 +635,6 @@ Examples:
     args = parser.parse_args()
 
     run_enrichment(
-        db_path=args.db,
         limit=args.limit,
         force=args.force,
         specific_id=args.specific_id,

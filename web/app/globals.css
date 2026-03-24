@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --gold: #c49a6c;
+  --bg: #08090d;
+  --card: #111318;
+  --card-border: #1a1c24;
+  --text: #c8c4be;
+  --muted: #5a5650;
+  --muted2: #6b6762;
+  --input-bg: #161a24;
+  --input-border: #1e2028;
+  --green: #6aad7a;
+  --red: #7a3030;
+  --nav-h: 56px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { scrollbar-width: none; }
+
+/* Leaflet dark theme overrides */
+.leaflet-popup-content-wrapper {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-radius: 8px !important;
+  border: 1px solid #252530 !important;
+}
+.leaflet-popup-tip {
+  background: var(--card) !important;
+}
+.leaflet-popup-content {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+.leaflet-popup-content a {
+  color: var(--gold) !important;
+}
+.bubble-label {
+  background: none !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.bubble-label span {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,.8);
+  pointer-events: none;
 }

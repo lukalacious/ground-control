@@ -33,24 +33,36 @@ def get_neon_conn():
     return psycopg2.connect(url)
 
 
+def get_pg_columns(pg_conn, table_name):
+    """Get column names from Postgres table (avoids SQLite columns that don't exist in Neon)."""
+    cur = pg_conn.cursor()
+    cur.execute(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = %s ORDER BY ordinal_position",
+        (table_name,)
+    )
+    return [row[0] for row in cur.fetchall()]
+
+
 def migrate_listings(sqlite_conn, pg_conn, dry_run=False):
     cursor = sqlite_conn.execute("SELECT * FROM listings")
-    columns = [desc[0] for desc in cursor.description]
+    sqlite_columns = [desc[0] for desc in cursor.description]
     rows = cursor.fetchall()
     print(f"  Found {len(rows)} listings in SQLite")
 
     if dry_run or not rows:
         return len(rows)
 
-    # Map SQLite column names to Postgres column names (snake_case matches)
-    pg_columns = columns  # Schema uses same snake_case names via @map
+    # Only use columns that exist in BOTH SQLite and Postgres
+    pg_existing = set(get_pg_columns(pg_conn, "listings"))
+    common_cols = [c for c in sqlite_columns if c in pg_existing]
+    col_indices = [sqlite_columns.index(c) for c in common_cols]
+    print(f"  Mapping {len(common_cols)} common columns (skipping: {set(sqlite_columns) - pg_existing})")
 
-    placeholders = ", ".join(["%s"] * len(pg_columns))
-    col_names = ", ".join(pg_columns)
+    placeholders = ", ".join(["%s"] * len(common_cols))
+    col_names = ", ".join(common_cols)
     conflict_col = "global_id"
 
-    # Build upsert: insert or update on conflict
-    update_cols = [c for c in pg_columns if c != conflict_col]
+    update_cols = [c for c in common_cols if c != conflict_col]
     update_set = ", ".join(f"{c} = EXCLUDED.{c}" for c in update_cols)
 
     query = f"""
@@ -61,16 +73,15 @@ def migrate_listings(sqlite_conn, pg_conn, dry_run=False):
 
     pg_cur = pg_conn.cursor()
     batch_size = 500
+    bool_cols = {"is_project", "is_active", "has_balcony", "detail_enriched", "description_translated"}
     for i in range(0, len(rows), batch_size):
         batch = rows[i:i + batch_size]
-        # Convert sqlite3.Row to tuples, handling boolean conversion
         clean_batch = []
         for row in batch:
             values = []
-            for j, col in enumerate(pg_columns):
-                val = row[j]
-                # SQLite booleans (0/1) → Python bool for Postgres
-                if col in ("is_project", "is_active", "has_balcony", "detail_enriched", "description_translated"):
+            for idx, col in zip(col_indices, common_cols):
+                val = row[idx]
+                if col in bool_cols:
                     val = bool(val) if val is not None else False
                 values.append(val)
             clean_batch.append(tuple(values))

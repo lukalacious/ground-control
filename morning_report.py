@@ -12,13 +12,14 @@ Usage:
 
 import argparse
 import json
+import os
 import random
-import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 import sys
 
-DB_PATH = Path(__file__).parent / "ground_control.db"
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 # Postcode area centroids (approximate)
 POSTCODE_COORDS = {
@@ -46,23 +47,42 @@ POSTCODE_COORDS = {
 }
 
 
-def get_new_listings(db_path: str, hours: int = 24) -> list[dict]:
-    """Get listings first_seen in the last N hours."""
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+def get_db_url():
+    """Read DATABASE_URL from environment or web/.env file."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        env_file = Path(__file__).parent / "web" / ".env"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                if line.startswith("DATABASE_URL="):
+                    url = line.split("=", 1)[1].strip().strip('"')
+                    break
+    return url
 
-    rows = conn.execute(f"""
+
+def get_connection():
+    """Get a psycopg2 connection to Neon PostgreSQL."""
+    return psycopg2.connect(get_db_url(), cursor_factory=RealDictCursor)
+
+
+def get_new_listings(hours: int = 24) -> list[dict]:
+    """Get listings first_seen in the last N hours."""
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
         SELECT global_id, address, postcode, neighbourhood, price, price_numeric,
                living_area, bedrooms, detail_url, image_url, energy_label,
                year_built, has_balcony, floor_level, construction_type,
                num_rooms, num_bathrooms, vve_contribution, erfpacht,
                first_seen
         FROM listings
-        WHERE is_active = 1
-          AND first_seen >= datetime('now', '-{hours} hours')
+        WHERE is_active = true
+          AND first_seen >= NOW() - make_interval(hours => %s)
         ORDER BY price_numeric ASC, first_seen DESC
-    """).fetchall()
+    """, (hours,))
 
+    rows = cur.fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
@@ -86,7 +106,7 @@ def generate_map_svg(listings: list[dict]) -> str:
             x, y = latlon_to_xy(lat, lon)
             x += random.uniform(-12, 12)
             y += random.uniform(-12, 12)
-            
+
             price = l.get('price_numeric')
             if price and price < 400000:
                 color = '#22c55e'
@@ -96,25 +116,25 @@ def generate_map_svg(listings: list[dict]) -> str:
                 color = '#ef4444'
             else:
                 color = '#9ca3af'
-            
+
             circles.append(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="6" fill="{color}" opacity="0.75"/>')
 
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {WIDTH} {HEIGHT}" width="{WIDTH}" height="{HEIGHT}">
     <rect width="100%" height="100%" fill="#f8fafc"/>
-    <text x="15" y="25" font-family="Arial" font-size="14" font-weight="bold" fill="#1e293b">📍 Amsterdam — {len(listings)} new</text>
+    <text x="15" y="25" font-family="Arial" font-size="14" font-weight="bold" fill="#1e293b">Amsterdam -- {len(listings)} new</text>
     {''.join(circles)}
     <rect x="15" y="{HEIGHT-45}" width="120" height="35" fill="white" rx="4" opacity="0.9"/>
-    <circle cx="25" cy="{HEIGHT-28}" r="5" fill="#22c55e"/><text x="35" y="{HEIGHT-24}" font-family="Arial" font-size="9" fill="#374151">&lt;€400k</text>
-    <circle cx="80" cy="{HEIGHT-28}" r="5" fill="#f97316"/><text x="90" y="{HEIGHT-24}" font-family="Arial" font-size="9" fill="#374151">€400-600k</text>
-    <circle cx="135" cy="{HEIGHT-28}" r="5" fill="#ef4444"/><text x="145" y="{HEIGHT-24}" font-family="Arial" font-size="9" fill="#374151">&gt;€600k</text>
+    <circle cx="25" cy="{HEIGHT-28}" r="5" fill="#22c55e"/><text x="35" y="{HEIGHT-24}" font-family="Arial" font-size="9" fill="#374151">&lt;EUR400k</text>
+    <circle cx="80" cy="{HEIGHT-28}" r="5" fill="#f97316"/><text x="90" y="{HEIGHT-24}" font-family="Arial" font-size="9" fill="#374151">EUR400-600k</text>
+    <circle cx="135" cy="{HEIGHT-28}" r="5" fill="#ef4444"/><text x="145" y="{HEIGHT-24}" font-family="Arial" font-size="9" fill="#374151">&gt;EUR600k</text>
 </svg>'''
 
 
 def format_report(listings: list[dict], include_map: bool = True) -> tuple[str, str | None]:
     """Format listings as Telegram message. Returns (text, map_svg)."""
     if not listings:
-        return "🏠 *Ground Control*\n\n_No new listings in the last 24 hours._", None
+        return "Ground Control\n\n_No new listings in the last 24 hours._", None
 
     # Generate map
     map_svg = generate_map_svg(listings) if include_map else None
@@ -123,36 +143,36 @@ def format_report(listings: list[dict], include_map: bool = True) -> tuple[str, 
     total_value = sum(l.get('price_numeric', 0) or 0 for l in listings)
     avg_price = total_value // len(listings) if listings and total_value > 0 else 0
     with_balcony = sum(1 for l in listings if l.get('has_balcony'))
-    
+
     lines = [
-        f"🏠 *Ground Control — New Listings ({len(listings)})*",
-        f"\n📊 _avg €{avg_price:,} | {with_balcony} balcony_"
+        f"*Ground Control -- New Listings ({len(listings)})*",
+        f"\n_avg EUR{avg_price:,} | {with_balcony} balcony_"
     ]
 
     # Show top 8 listings
     for i, l in enumerate(listings[:8], 1):
         if not l.get('price_numeric'):
             continue
-            
-        price = f"€{l['price_numeric']:,.0f}"
+
+        price = f"EUR{l['price_numeric']:,.0f}"
         addr = l.get('address', '')[:35] or l.get('postcode', 'Unknown') or '?'
-        
+
         parts = []
         if l.get('living_area'):
-            parts.append(f"{l['living_area']}m²")
+            parts.append(f"{l['living_area']}m2")
         if l.get('num_rooms'):
             parts.append(f"{l['num_rooms']}k")
-        
+
         tags = []
         if l.get('has_balcony'):
-            tags.append("🌿")
+            tags.append("balcony")
         if l.get('energy_label'):
-            tags.append(f"⚡{l['energy_label']}")
-        
-        details = " • ".join(parts) if parts else ""
+            tags.append(f"E:{l['energy_label']}")
+
+        details = " | ".join(parts) if parts else ""
         tag_str = " ".join(tags) if tags else ""
-        
-        lines.append(f"\n{i}. *{price}* — {addr}")
+
+        lines.append(f"\n{i}. *{price}* -- {addr}")
         if details or tag_str:
             lines.append(f"   {details} {tag_str}".strip())
 
@@ -160,7 +180,7 @@ def format_report(listings: list[dict], include_map: bool = True) -> tuple[str, 
         lines.append(f"\n_...and {len(listings) - 8} more_")
 
     lines.append(f"\n_{datetime.now().strftime('%H:%M')}_")
-    
+
     return "\n".join(lines), map_svg
 
 
@@ -181,20 +201,20 @@ def send_telegram(message: str, map_svg: str | None = None, dry_run: bool = Fals
     """Send message via Telegram bot."""
     bot_token = get_keychain_password("telegram-bot-token")
     chat_id = get_keychain_password("telegram-chat-id")
-    
+
     if not bot_token or not chat_id:
         print("ERROR: Telegram credentials not found")
         return False
-    
+
     if dry_run:
         print("[DRY RUN]")
         print(message)
         if map_svg:
             print("[MAP SVG generated]")
         return True
-    
+
     import requests
-    
+
     # Send text first
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     data = {
@@ -204,27 +224,27 @@ def send_telegram(message: str, map_svg: str | None = None, dry_run: bool = Fals
         "disable_web_page_preview": True,
     }
     resp = requests.post(url, json=data, timeout=10)
-    
+
     # Send map as photo if we have one
     if map_svg and resp.status_code == 200:
         # Save SVG to temp file
         svg_path = "/tmp/ground_control_map.svg"
         with open(svg_path, "w") as f:
             f.write(map_svg)
-        
+
         # Upload as photo
         url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
         with open(svg_path, "rb") as f:
             files = {"photo": ("map.svg", f, "image/svg+xml")}
-            data = {"chat_id": chat_id, "caption": "📍 New listings map"}
+            data = {"chat_id": chat_id, "caption": "New listings map"}
             resp2 = requests.post(url, files=files, data=data, timeout=30)
             if resp2.status_code == 200:
-                print(f"✓ Map sent")
+                print("Map sent")
             else:
                 print(f"Map send error: {resp2.status_code}")
-    
+
     if resp.status_code == 200:
-        print(f"✓ Report sent to {chat_id}")
+        print(f"Report sent to {chat_id}")
         return True
     else:
         print(f"ERROR: {resp.status_code} - {resp.text}")
@@ -236,14 +256,13 @@ def main():
     parser.add_argument("--hours", type=int, default=24)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--no-map", action="store_true")
-    parser.add_argument("--db", default=str(DB_PATH))
     args = parser.parse_args()
 
     print(f"=== Morning Report: {datetime.now().strftime('%Y-%m-%d %H:%M')} ===")
-    
-    listings = get_new_listings(args.db, hours=args.hours)
+
+    listings = get_new_listings(hours=args.hours)
     print(f"Found {len(listings)} new listing(s)")
-    
+
     message, map_svg = format_report(listings, include_map=not args.no_map)
     send_telegram(message, map_svg, dry_run=args.dry_run)
 

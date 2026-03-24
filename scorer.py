@@ -10,8 +10,12 @@ Higher score = more undervalued = better deal.
 """
 
 import json
-import sqlite3
+import os
 from datetime import datetime, timezone
+from pathlib import Path
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 WEIGHTS = {
     "vs_neighbourhood": 0.40,
@@ -20,28 +24,48 @@ WEIGHTS = {
 }
 
 
-def score_listings(db_path: str) -> list[dict]:
+def get_db_url():
+    """Read DATABASE_URL from environment or web/.env file."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        env_file = Path(__file__).parent / "web" / ".env"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                if line.startswith("DATABASE_URL="):
+                    url = line.split("=", 1)[1].strip().strip('"')
+                    break
+    return url
+
+
+def get_connection():
+    """Get a psycopg2 connection to Neon PostgreSQL."""
+    return psycopg2.connect(get_db_url(), cursor_factory=RealDictCursor)
+
+
+def score_listings() -> list[dict]:
     """Score all active listings and return sorted list (highest score first)."""
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+    conn = get_connection()
+    cur = conn.cursor()
 
     # City-wide avg price/m2
-    city_row = conn.execute(
+    cur.execute(
         "SELECT avg_price_m2 FROM city_stats ORDER BY calculated_at DESC LIMIT 1"
-    ).fetchone()
+    )
+    city_row = cur.fetchone()
     city_avg_m2 = city_row["avg_price_m2"] if city_row else None
 
     # Neighbourhood avg price/m2 lookup
     hood_stats = {}
-    for row in conn.execute("SELECT neighbourhood, avg_price_m2 FROM neighbourhood_stats"):
+    cur.execute("SELECT neighbourhood, avg_price_m2 FROM neighbourhood_stats")
+    for row in cur.fetchall():
         hood_stats[row["neighbourhood"]] = row["avg_price_m2"]
 
     # Score all listings (including sold/inactive for dashboard filtering)
-    listings = conn.execute(
+    cur.execute(
         """SELECT global_id, address, city, postcode, neighbourhood, price, price_numeric,
                   listing_url, detail_url, agent_name, image_url,
                   living_area, plot_area, bedrooms, energy_label, object_type,
-                  construction_type, first_seen, last_seen, is_active, previous_price,
+                  construction_type, first_seen, last_seen, is_active,
                   availability_status, predicted_price, residual,
                   description, year_built, num_rooms, num_bathrooms, bathroom_features,
                   num_floors, floor_level, outdoor_area_m2, volume_m3, amenities,
@@ -49,9 +73,10 @@ def score_listings(db_path: str) -> list[dict]:
                   parking_type, vve_contribution, erfpacht, acceptance, photo_urls
            FROM listings
            WHERE price_numeric > 0
-             AND detail_url NOT LIKE '%parkeergelegenheid%'
+             AND detail_url NOT LIKE '%%parkeergelegenheid%%'
              AND living_area IS NOT NULL AND living_area > 0"""
-    ).fetchall()
+    )
+    listings = cur.fetchall()
 
     now = datetime.now(timezone.utc)
     scored = []
@@ -85,7 +110,11 @@ def score_listings(db_path: str) -> list[dict]:
         days_on_market = 0
         if row["first_seen"]:
             try:
-                first = datetime.fromisoformat(row["first_seen"].replace("Z", "+00:00"))
+                first = row["first_seen"]
+                if isinstance(first, str):
+                    first = datetime.fromisoformat(first.replace("Z", "+00:00"))
+                elif first.tzinfo is None:
+                    first = first.replace(tzinfo=timezone.utc)
                 days_on_market = max(0, (now - first).days)
             except (ValueError, TypeError):
                 pass
