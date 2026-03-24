@@ -1766,5 +1766,25 @@
     52.3245942,
     4.96381051,
     "Ganzenhoef e.o."
+  ],
+  "Beethovenbuurt": [
+    52.3490379,
+    4.88025226,
+    "Apollobuurt"
+  ],
+  "Bakemabuurt": [
+    52.3784988,
+    4.80558951,
+    "Geuzenveld"
+  ],
+  "Nieuw-Sloten-Zuidwest": [
+    52.34361604,
+    4.8059474,
+    "Sloten/Nieuw-Sloten"
+  ],
+  "Twiske-West": [
+    52.42195088,
+    4.89469933,
+    "Oostzanerwerf"
   ]
 }
