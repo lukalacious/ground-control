@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// Core listing data — scraped from Funda search + detail pages
+// ─────────────────────────────────────────────────────────────
+
+model Listing {
+  globalId          Int       @id @map("global_id")
+  address           String?
+  city              String?
+  postcode          String?
+  neighbourhood     String?
+
+  // Price
+  price             String?   // Formatted text: "€ 349,000"
+  priceNumeric      Int?      @map("price_numeric")
+
+  // URLs
+  listingUrl        String?   @map("listing_url")
+  detailUrl         String?   @map("detail_url")
+  imageUrl          String?   @map("image_url")
+  photoUrls         String?   @map("photo_urls")       // JSON array
+  floorplanUrls     String?   @map("floorplan_urls")    // JSON array (NEW)
+
+  // Agent
+  agentName         String?   @map("agent_name")
+  agentUrl          String?   @map("agent_url")
+
+  // Physical
+  livingArea        Int?      @map("living_area")
+  plotArea          Int?      @map("plot_area")
+  bedrooms          Int?
+  numRooms          Int?      @map("num_rooms")
+  numBathrooms      Int?      @map("num_bathrooms")
+  bathroomFeatures  String?   @map("bathroom_features")
+  numFloors         Int?      @map("num_floors")
+  floorLevel        String?   @map("floor_level")
+  outdoorAreaM2     Int?      @map("outdoor_area_m2")
+  volumeM3          Int?      @map("volume_m3")
+
+  // Classification
+  energyLabel       String?   @map("energy_label")
+  objectType        String?   @map("object_type")
+  constructionType  String?   @map("construction_type")
+  isProject         Boolean   @default(false) @map("is_project")
+  labels            String?
+  listingType       String?   @map("listing_type")
+
+  // Features
+  amenities         String?
+  insulation        String?
+  heating           String?
+  locationType      String?   @map("location_type")
+  hasBalcony        Boolean   @default(false) @map("has_balcony")
+  balconyType       String?   @map("balcony_type")
+  parkingType       String?   @map("parking_type")
+
+  // Financial
+  vveContribution   String?   @map("vve_contribution")
+  erfpacht          String?   // Raw erfpacht text from Funda
+  acceptance        String?
+  yearBuilt         String?   @map("year_built")
+
+  // Erfpacht intelligence (NEW)
+  erfpachtStatus    String?   @map("erfpacht_status")    // freehold|bought_off|perpetual|fixed_term|unknown
+  erfpachtAmount    Float?    @map("erfpacht_amount")     // Annual canon in EUR
+  erfpachtEndYear   Int?      @map("erfpacht_end_year")   // End year if fixed-term
+
+  // Description + translation (NEW)
+  description       String?
+  descriptionEn     String?   @map("description_en")
+  descriptionTranslated Boolean @default(false) @map("description_translated")
+
+  // ML model outputs
+  predictedPrice    Float?    @map("predicted_price")
+  residual          Float?
+
+  // Tracking
+  firstSeen         DateTime  @default(now()) @map("first_seen")
+  lastSeen          DateTime  @default(now()) @map("last_seen")
+  isActive          Boolean   @default(true)  @map("is_active")
+  availabilityStatus String   @default("available") @map("availability_status")
+  statusChangedAt   DateTime? @map("status_changed_at")
+
+  // Enrichment flags
+  detailEnriched    Boolean   @default(false) @map("detail_enriched")
+  detailEnrichedAt  DateTime? @map("detail_enriched_at")
+
+  // Relations
+  priceHistory      PriceHistory[]
+
+  @@index([city])
+  @@index([isActive])
+  @@index([firstSeen])
+  @@index([neighbourhood])
+  @@index([availabilityStatus])
+  @@map("listings")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Price change tracking
+// ─────────────────────────────────────────────────────────────
+
+model PriceHistory {
+  id         Int      @id @default(autoincrement())
+  globalId   Int      @map("global_id")
+  oldPrice   Int      @map("old_price")
+  newPrice   Int      @map("new_price")
+  recordedAt DateTime @default(now()) @map("recorded_at")
+
+  listing    Listing  @relation(fields: [globalId], references: [globalId])
+
+  @@index([globalId])
+  @@map("price_history")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Neighbourhood statistics (recomputed per scrape cycle)
+// ─────────────────────────────────────────────────────────────
+
+model NeighbourhoodStats {
+  id            Int      @id @default(autoincrement())
+  neighbourhood String
+  avgPriceM2    Float?   @map("avg_price_m2")
+  medianPrice   Float?   @map("median_price")
+  listingCount  Int?     @map("listing_count")
+  calculatedAt  DateTime @default(now()) @map("calculated_at")
+
+  @@map("neighbourhood_stats")
+}
+
+// ─────────────────────────────────────────────────────────────
+// City-wide statistics
+// ─────────────────────────────────────────────────────────────
+
+model CityStats {
+  id                  Int      @id @default(autoincrement())
+  avgPriceM2          Float?   @map("avg_price_m2")
+  medianPrice         Float?   @map("median_price")
+  medianDaysOnMarket  Float?   @map("median_days_on_market")
+  listingCount        Int?     @map("listing_count")
+  calculatedAt        DateTime @default(now()) @map("calculated_at")
+
+  @@map("city_stats")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Neighbourhood analytics (NEW — percentiles, trends)
+// ─────────────────────────────────────────────────────────────
+
+model NeighbourhoodAnalytics {
+  id            Int      @id @default(autoincrement())
+  neighbourhood String   @unique
+  p10PriceM2    Float?   @map("p10_price_m2")
+  p25PriceM2    Float?   @map("p25_price_m2")
+  p50PriceM2    Float?   @map("p50_price_m2")
+  p75PriceM2    Float?   @map("p75_price_m2")
+  p90PriceM2    Float?   @map("p90_price_m2")
+  avgPriceM2    Float?   @map("avg_price_m2")
+  medianPrice   Float?   @map("median_price")
+  minPrice      Float?   @map("min_price")
+  maxPrice      Float?   @map("max_price")
+  listingCount  Int?     @map("listing_count")
+  trendData     String?  @map("trend_data")  // JSON: [{date, avg_price_m2}]
+  calculatedAt  DateTime @default(now()) @map("calculated_at")
+
+  @@map("neighbourhood_analytics")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Scrape run audit log
+// ─────────────────────────────────────────────────────────────
+
+model ScrapeRun {
+  id              Int      @id @default(autoincrement())
+  runAt           DateTime @default(now()) @map("run_at")
+  city            String?
+  searchType      String?  @map("search_type")
+  pagesScraped    Int?     @map("pages_scraped")
+  listingsFound   Int?     @map("listings_found")
+  newListings     Int?     @map("new_listings")
+  updatedListings Int?     @map("updated_listings")
+
+  @@map("scrape_runs")
+}
