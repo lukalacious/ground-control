@@ -36,10 +36,10 @@ vercel --prod
 
 # 3. Add environment variables
 vercel env add DATABASE_URL production
-# Paste: postgresql://neondb_owner:npg_CTsEhSk1W3XB@ep-round-river-ae4swv5v-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
+# Paste: postgresql://YOUR_NEON_USER:YOUR_NEON_PASSWORD@YOUR_NEON_HOST-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
 
 vercel env add DIRECT_DATABASE_URL production
-# Paste: postgresql://neondb_owner:npg_CTsEhSk1W3XB@ep-round-river-ae4swv5v.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
+# Paste: postgresql://YOUR_NEON_USER:YOUR_NEON_PASSWORD@YOUR_NEON_HOST.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
 
 # 4. Redeploy with env vars
 vercel --prod
@@ -138,8 +138,8 @@ ssh mac-mini "cd ~/ground-control && source venv/bin/activate && python3 erfpach
 
 | Variable | Value | Used by |
 |----------|-------|---------|
-| `DATABASE_URL` | `postgresql://neondb_owner:npg_CTsEhSk1W3XB@ep-round-river-ae4swv5v-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require` | App + Python |
-| `DIRECT_DATABASE_URL` | `postgresql://neondb_owner:npg_CTsEhSk1W3XB@ep-round-river-ae4swv5v.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require` | Prisma migrations |
+| `DATABASE_URL` | `postgresql://YOUR_NEON_USER:YOUR_NEON_PASSWORD@YOUR_NEON_HOST-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require` | App + Python |
+| `DIRECT_DATABASE_URL` | `postgresql://YOUR_NEON_USER:YOUR_NEON_PASSWORD@YOUR_NEON_HOST.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require` | Prisma migrations |
 
 The only difference is `-pooler` in the hostname. Pooled = app connections. Direct = migration commands.
 
